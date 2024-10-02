@@ -1,0 +1,19 @@
+command: docker runx
+short: Docker Run, better
+long: Docker Run, better
+usage: docker runx [command]
+pname: docker
+plink: docker.yaml
+cname:
+    - docker runx help
+    - docker runx version
+clink:
+    - docker_runx_help.yaml
+    - docker_runx_version.yaml
+deprecated: false
+hidden: false
+experimental: false
+experimentalcli: false
+kubernetes: false
+swarm: false
+

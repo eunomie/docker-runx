@@ -1,0 +1,36 @@
+run:
+  go: '1.23'
+linters:
+  enable:
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - typecheck
+    - unused
+    - unconvert
+    - gofmt
+    - misspell
+    - bodyclose
+    - revive
+    - gocyclo
+    - whitespace
+    - goimports
+    - unparam
+linters-settings:
+  gosimple:
+    go: '1.23'
+  staticcheck:
+    go: '1.23'
+  stylecheck:
+    go: '1.23'
+  unused:
+    go: '1.23'
+  revive:
+    rules:
+      - name: exported
+        disabled: true
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  exclude-use-default: false

@@ -1,0 +1,13 @@
+command: docker runx version
+short: Show Docker RunX version information
+long: Show Docker RunX version information
+usage: docker runx version
+pname: docker runx
+plink: docker_runx.yaml
+deprecated: false
+hidden: false
+experimental: false
+experimentalcli: false
+kubernetes: false
+swarm: false
+

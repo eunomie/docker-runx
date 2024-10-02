@@ -1,0 +1,86 @@
+version: '3'
+
+vars:
+  BIN_NAME: docker-runx
+  PKG_NAME: github.com/eunomie/docker-runx
+  GOLANGCI_LINT_IMAGE_NAME: docker/golangci-lint:1.61.0-go1.23.1
+
+tasks:
+  go:test:
+    cmds:
+      - go test -race -coverpkg=./... -coverprofile=.coverage -shuffle=on ./...
+
+  go:cover:
+    cmds:
+      - go tool cover -html=.coverage
+
+  go:tidy:
+    cmds:
+      - go mod tidy -v
+
+  go:checkmodules:
+    cmds:
+      - go mod verify
+      - go mod download
+
+  go:build:
+    cmds:
+      - task: go:bin
+      - task: docker:scout:fs
+
+  go:bin:
+    cmds:
+      - |
+        go build \
+          -o dist/{{.BIN_NAME}} \
+          -ldflags="-w -s \
+            -X '{{.PKG_NAME}}/internal/constants.Version={{.VERSION}}'" \
+          ./cmd/{{.BIN_NAME}}
+    env:
+      CGO_ENABLED: 0
+    vars:
+      VERSION:
+        sh: git describe --tags | cut -c 2-
+
+  go:fmt:
+    cmds:
+      - find . -type f -name "*.go" -exec .github/remove_empty_imports.sh "{}" \;
+      - goimports -w -local github.com/docker,github.com/eunomie .
+      - gofumpt -w .
+
+  go:lint:
+    cmds:
+      - |
+        docker run --rm \
+          -v $(pwd):/app \
+          -v $(go env GOPATH)/pkg:/go/pkg \
+          -v $(go env GOCACHE):/cache/go \
+          -e GOFLAGS=-buildvcs=false \
+          -e GOCACHE=/cache/go \
+          -e GOLANGCI_LINT_CACHE=/cache/go \
+          -w /app \
+          {{.GOLANGCI_LINT_IMAGE_NAME}} \
+          golangci-lint run -v --timeout 5m
+
+  go:gendocs:
+    cmds:
+      - go run ./cmd/gen-docs --formats md,yaml
+
+  docker:scout:fs:
+    env:
+      DOCKER_CLI_HINTS: false
+    cmds:
+      - docker scout cves --format only-packages --only-vuln-packages fs://.
+
+  ci:install:
+    cmds:
+      - go install golang.org/x/tools/cmd/goimports@latest
+      - go install mvdan.cc/gofumpt@latest
+
+  precommit:
+    deps:
+      - go:checkmodules
+      - go:fmt
+      - go:lint
+      - go:test
+      - go:gendocs
