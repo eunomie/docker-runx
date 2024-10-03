@@ -1,0 +1,153 @@
+name: Build and test
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    branches:
+      - 'main'
+  pull_request:
+    branches:
+      - 'main'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout merge commit if on PR
+        if: ${{ !startsWith(github.ref, 'refs/heads/release/') }}
+        uses: actions/checkout@v3
+      - name: Checkout HEAD commit
+        if: startsWith(github.ref, 'refs/heads/release/')
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: './go.mod'
+          cache: true
+
+      - name: Install Task
+        uses: arduino/setup-task@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up containerd
+        uses: crazy-max/ghaction-setup-docker@v3
+        with:
+          set-host: true
+          daemon-config: |
+            {
+              "features": {
+                "containerd-snapshotter": true
+              }
+            }
+
+      - name: Go dependencies
+        run: task go:checkmodules
+
+      - name: Test
+        run: task go:test
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout merge commit if on PR
+        if: ${{ !startsWith(github.ref, 'refs/heads/release/') }}
+        uses: actions/checkout@v3
+      - name: Checkout HEAD commit
+        if: startsWith(github.ref, 'refs/heads/release/')
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: './go.mod'
+          cache: true
+
+      - name: Install Task
+        uses: arduino/setup-task@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up containerd
+        uses: crazy-max/ghaction-setup-docker@v3
+        with:
+          set-host: true
+          daemon-config: |
+            {
+              "features": {
+                "containerd-snapshotter": true
+              }
+            }
+
+      - name: Go dependencies
+        run: task go:checkmodules
+
+      - name: CI dependencies
+        run: task ci:install
+
+      - name: golangci-lint
+        run: task go:lint
+
+      - name: Run checks
+        run: |
+          STATUS=0
+          assert-nothing-changed() {
+            local diff
+            "$@" >/dev/null || return 1
+            if ! diff="$(git diff -U1 --color --exit-code)"; then
+              printf '\e[31mError: running `\e[1m%s\e[22m` results in modifications that you must check into version control:\e[0m\n%s\n\n' "$*" "$diff" >&2
+              git checkout -- .
+              STATUS=1
+            fi
+          }
+          assert-nothing-changed task go:fmt
+          assert-nothing-changed task go:tidy
+          assert-nothing-changed task go:gendocs
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout merge commit if on PR
+        if: ${{ !startsWith(github.ref, 'refs/heads/release/') }}
+        uses: actions/checkout@v3
+      - name: Checkout HEAD commit
+        if: startsWith(github.ref, 'refs/heads/release/')
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: './go.mod'
+          cache: true
+
+      - name: Install Task
+        uses: arduino/setup-task@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up containerd
+        uses: crazy-max/ghaction-setup-docker@v3
+        with:
+          set-host: true
+          daemon-config: |
+            {
+              "features": {
+                "containerd-snapshotter": true
+              }
+            }
+
+      - name: Go dependencies
+        run: task go:checkmodules
+
+      - name: Test
+        run: task go:bin
