@@ -3,6 +3,7 @@ version: '3'
 vars:
   BIN_NAME: docker-runx
   PKG_NAME: github.com/eunomie/docker-runx
+  BIN_PLATFORMS: linux/amd64,linux/arm64,darwin/amd64,darwin/arm64,windows/amd64,windows/arm64
   GOLANGCI_LINT_IMAGE_NAME: docker/golangci-lint:1.61.0-go1.23.1
 
 tasks:
@@ -41,6 +42,17 @@ tasks:
     vars:
       VERSION:
         sh: git describe --tags | cut -c 2-
+
+  go:bin:all:
+    cmds:
+      - |
+        docker buildx build \
+          --build-arg BIN_NAME={{.BIN_NAME}} \
+          -f Dockerfile \
+          --platform {{.BIN_PLATFORMS}} \
+          --target export-bin \
+          -o type=local,dest=dist \
+          .
 
   go:fmt:
     cmds:
@@ -84,3 +96,7 @@ tasks:
       - go:lint
       - go:test
       - go:gendocs
+
+  clean:
+    cmds:
+      - rm -rf dist

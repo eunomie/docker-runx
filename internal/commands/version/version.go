@@ -14,7 +14,7 @@ func NewCmd(_ command.Cli) *cobra.Command {
 		Use:   "version",
 		Short: "Show Docker RunX version information",
 		Run: func(_ *cobra.Command, _ []string) {
-			fmt.Println(constants.Version)
+			fmt.Println(constants.Short())
 		},
 	}
 
