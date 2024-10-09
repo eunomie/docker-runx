@@ -127,11 +127,20 @@ func run(ctx context.Context, out io.Writer, rk *runkit.RunKit, action string) e
 		return err
 	}
 
+	opts, err := prompt.Ask(runnable.Action)
+	if err != nil {
+		return err
+	}
+
+	if err = runnable.SetOptionValues(opts); err != nil {
+		return err
+	}
+
 	_, _ = fmt.Fprintln(out, tui.Markdown(fmt.Sprintf(`
 > **Running the following command:**
 >
 >     %s
-`, runnable)))
+`, runnable.Command)))
 
 	return runnable.Run(ctx)
 }

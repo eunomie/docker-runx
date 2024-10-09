@@ -1,7 +1,18 @@
 actions:
-  - id: hello
+  - id: hello:user
     desc: Say hello to the current user
     type: run
     env:
       - USER
     cmd: --rm {{.Ref}} echo hello {{env "USER"}}
+
+  - id: hello
+    desc: Say hello!
+    type: run
+    opts:
+      - name: name
+        desc: User's name
+        prompt: Please enter your name
+        required: true
+    cmd: >
+      --rm {{.Ref}} echo hello {{opt "name"}}

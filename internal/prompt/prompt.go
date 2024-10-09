@@ -1,6 +1,8 @@
 package prompt
 
 import (
+	"cmp"
+	"errors"
 	"strings"
 
 	"github.com/charmbracelet/huh"
@@ -43,4 +45,57 @@ func envStr(env []string) string {
 		return ""
 	}
 	return " (required env: " + strings.Join(env, ", ") + ")"
+}
+
+func Ask(action runkit.Action) (map[string]string, error) {
+	if len(action.Options) == 0 {
+		return nil, nil
+	}
+
+	var (
+		err    error
+		opts   = map[string]string{}
+		form   *huh.Form
+		fields []huh.Field
+	)
+
+	for _, opt := range action.Options {
+		opt := opt
+		if len(opt.Values) == 0 {
+			fields = append(fields,
+				huh.NewInput().
+					Title(cmp.Or(opt.Prompt, cmp.Or(opt.Description, opt.Name))).
+					Key(opt.Name).
+					Validate(checkRequired(opt.Required)))
+		} else {
+			fields = append(fields,
+				huh.NewSelect[string]().
+					Title(cmp.Or(opt.Prompt, cmp.Or(opt.Description, opt.Name))).
+					Key(opt.Name).
+					Validate(checkRequired(opt.Required)).
+					Options(pizza.Map(opt.Values, func(str string) huh.Option[string] {
+						return huh.NewOption(str, str)
+					})...))
+		}
+	}
+
+	form = huh.NewForm(huh.NewGroup(fields...))
+	if err = form.Run(); err != nil {
+		return nil, err
+	}
+
+	for _, opt := range action.Options {
+		opts[opt.Name] = form.GetString(opt.Name)
+	}
+
+	return opts, nil
+}
+
+func checkRequired(isRequired bool) func(string) error {
+	return func(str string) error {
+		if str == "" && isRequired {
+			return errors.New("required")
+		}
+		return nil
+	}
 }
