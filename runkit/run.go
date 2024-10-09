@@ -71,6 +71,13 @@ func (r *Runnable) compute() error {
 		"opt": func(optName string) string {
 			return r.data.Opts[optName]
 		},
+		"sh": func(cmdName string) (string, error) {
+			cmd, ok := r.Action.Shell[cmdName]
+			if !ok {
+				return "", fmt.Errorf("shell command %q not found", cmdName)
+			}
+			return sh(context.Background(), cmd)
+		},
 	}).Parse(r.Action.Command)
 	if err != nil {
 		return err
@@ -112,4 +119,22 @@ func (r *Runnable) Run(ctx context.Context) error {
 		return err
 	}
 	return runner.Run(ctx, parsedCmd)
+}
+
+func sh(ctx context.Context, cmd string) (string, error) {
+	parseCmd, err := syntax.NewParser().Parse(strings.NewReader(cmd), "")
+	if err != nil {
+		return "", err
+	}
+
+	var osOut, osErr strings.Builder
+	runner, err := interp.New(interp.Env(expand.ListEnviron(os.Environ()...)), interp.StdIO(nil, &osOut, &osErr))
+	if err != nil {
+		return "", err
+	}
+	if err = runner.Run(ctx, parseCmd); err != nil {
+		return "", err
+	}
+
+	return osOut.String(), nil
 }

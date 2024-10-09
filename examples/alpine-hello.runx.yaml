@@ -5,7 +5,9 @@ actions:
     type: run
     env:
       - USER
-    cmd: --rm {{.Ref}} echo hello {{env "USER"}}
+    shell:
+      uname: uname
+    cmd: --rm {{.Ref}} echo hello {{env "USER"}} from {{sh "uname"}}
 
   - id: hello
     desc: Say hello!
