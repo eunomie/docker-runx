@@ -45,7 +45,7 @@ func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 					return nil
 				}
 
-				if list {
+				if list || len(args) == 1 {
 					_, _ = fmt.Fprintln(dockerCli.Out(), tui.Markdown(mdActions(rk)))
 					return nil
 				}
