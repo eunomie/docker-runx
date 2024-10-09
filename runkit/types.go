@@ -9,6 +9,7 @@ type (
 	}
 
 	Config struct {
+		Default string   `yaml:"default,omitempty" json:"default,omitempty"`
 		Actions []Action `yaml:"actions" json:"actions"`
 	}
 

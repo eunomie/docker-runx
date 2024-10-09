@@ -1,6 +1,7 @@
 package root
 
 import (
+	"cmp"
 	"context"
 	"fmt"
 	"io"
@@ -93,6 +94,8 @@ func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 					_, _ = fmt.Fprintln(dockerCli.Out(), tui.Markdown(rk.Readme+"\n---\n"+mdActions(rk)))
 					return nil
 				}
+
+				action = cmp.Or(action, rk.Config.Default)
 
 				if list || action == "" {
 					if tui.IsATTY(dockerCli.In().FD()) {
