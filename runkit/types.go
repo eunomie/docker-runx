@@ -33,7 +33,12 @@ type (
 	ActionType string
 
 	LocalConfig struct {
-		Ref string `yaml:"ref,omitempty" json:"ref,omitempty"`
+		Ref    string                 `yaml:"ref,omitempty" json:"ref,omitempty"`
+		Images map[string]ConfigImage `yaml:"images,omitempty" json:"images,omitempty"`
+	}
+
+	ConfigImage struct {
+		Default string `yaml:"default,omitempty" json:"default,omitempty"`
 	}
 )
 

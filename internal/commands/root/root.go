@@ -1,7 +1,6 @@
 package root
 
 import (
-	"cmp"
 	"context"
 	"fmt"
 	"io"
@@ -95,7 +94,7 @@ func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 					return nil
 				}
 
-				action = cmp.Or(action, rk.Config.Default)
+				action = selectAction(action, lc.Images[src], rk.Config.Default)
 
 				if list || action == "" {
 					if tui.IsATTY(dockerCli.In().FD()) {
@@ -174,6 +173,18 @@ func run(ctx context.Context, out io.Writer, rk *runkit.RunKit, action string) e
 `, runnable.Command)))
 
 	return runnable.Run(ctx)
+}
+
+func selectAction(action string, conf runkit.ConfigImage, defaultAction string) string {
+	if action != "" {
+		return action
+	}
+
+	if conf.Default != "" {
+		return conf.Default
+	}
+
+	return defaultAction
 }
 
 func commandName(isPlugin bool) string {
