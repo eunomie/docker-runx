@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli-plugins/plugin"
@@ -20,21 +19,31 @@ func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 	var (
 		name = commandName(isPlugin)
 		cmd  = &cobra.Command{
-			Use:   fmt.Sprintf("%s [IMAGE]", name),
+			Use:   fmt.Sprintf("%s [IMAGE] [ACTION]", name),
 			Short: "Docker Run, better",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				if len(args) == 0 {
+				if len(args) == 0 || len(args) != 2 {
 					return cmd.Help()
 				}
 
-				src := args[0]
+				var (
+					src    = args[0]
+					action = args[1]
+				)
 
 				actions, err := runkit.Get(cmd.Context(), src)
 				if err != nil {
 					return err
 				}
 
-				return yaml.NewEncoder(cmd.OutOrStdout()).Encode(actions)
+				runnable, err := actions.GetRunnable(action)
+				if err != nil {
+					return err
+				}
+
+				_, _ = fmt.Fprintf(dockerCli.Out(), "\nRunning the following command:\n$ %s\n\n", runnable)
+
+				return runnable.Run(cmd.Context())
 			},
 		}
 	)

@@ -1,7 +1,7 @@
 command: docker runx
 short: Docker Run, better
 long: Docker Run, better
-usage: docker runx [IMAGE]
+usage: docker runx [IMAGE] [ACTION]
 pname: docker
 plink: docker.yaml
 cname:
