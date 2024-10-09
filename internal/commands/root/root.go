@@ -1,7 +1,9 @@
 package root
 
 import (
+	"context"
 	"fmt"
+	"io"
 	"strings"
 
 	"github.com/gertd/go-pluralize"
@@ -14,6 +16,7 @@ import (
 	"github.com/eunomie/docker-runx/internal/commands/help"
 	"github.com/eunomie/docker-runx/internal/commands/version"
 	"github.com/eunomie/docker-runx/internal/constants"
+	"github.com/eunomie/docker-runx/internal/prompt"
 	"github.com/eunomie/docker-runx/internal/tui"
 	"github.com/eunomie/docker-runx/runkit"
 )
@@ -46,24 +49,21 @@ func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 				}
 
 				if list || len(args) == 1 {
-					_, _ = fmt.Fprintln(dockerCli.Out(), tui.Markdown(mdActions(rk)))
+					if tui.IsATTY(dockerCli.In().FD()) {
+						action := prompt.SelectAction(rk.Config.Actions)
+						if action != "" {
+							return run(cmd.Context(), dockerCli.Err(), rk, action)
+						}
+					} else {
+						_, _ = fmt.Fprintln(dockerCli.Out(), tui.Markdown(mdActions(rk)))
+					}
 					return nil
 				}
 
 				if len(args) == 2 {
 					action := args[1]
-					runnable, err := rk.GetRunnable(action)
-					if err != nil {
-						return err
-					}
 
-					_, _ = fmt.Fprintln(dockerCli.Err(), tui.Markdown(fmt.Sprintf(`
-> **Running the following command:**
->
->     %s
-`, runnable)))
-
-					return runnable.Run(cmd.Context())
+					return run(cmd.Context(), dockerCli.Err(), rk, action)
 				}
 
 				return cmd.Help()
@@ -103,6 +103,21 @@ func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 	f.BoolVarP(&list, "list", "l", false, "List available actions")
 
 	return cmd
+}
+
+func run(ctx context.Context, out io.Writer, rk *runkit.RunKit, action string) error {
+	runnable, err := rk.GetRunnable(action)
+	if err != nil {
+		return err
+	}
+
+	_, _ = fmt.Fprintln(out, tui.Markdown(fmt.Sprintf(`
+> **Running the following command:**
+>
+>     %s
+`, runnable)))
+
+	return runnable.Run(ctx)
 }
 
 func commandName(isPlugin bool) string {
