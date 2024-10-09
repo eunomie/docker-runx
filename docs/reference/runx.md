@@ -14,10 +14,11 @@ Docker Run, better
 
 ### Options
 
-| Name           | Type   | Default | Description                          |
-|:---------------|:-------|:--------|:-------------------------------------|
-| `-d`, `--docs` | `bool` |         | Print the documentation of the image |
-| `-l`, `--list` | `bool` |         | List available actions               |
+| Name           | Type   | Default | Description                                                       |
+|:---------------|:-------|:--------|:------------------------------------------------------------------|
+| `--ask`        | `bool` |         | Do not read local configuration option values and always ask them |
+| `-d`, `--docs` | `bool` |         | Print the documentation of the image                              |
+| `-l`, `--list` | `bool` |         | List available actions                                            |
 
 
 <!---MARKER_GEN_END-->

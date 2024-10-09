@@ -27,6 +27,7 @@ import (
 var (
 	docs bool
 	list bool
+	ask  bool
 )
 
 func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
@@ -100,7 +101,7 @@ func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 					if tui.IsATTY(dockerCli.In().FD()) {
 						action := prompt.SelectAction(rk.Config.Actions)
 						if action != "" {
-							return run(cmd.Context(), dockerCli.Err(), rk, action)
+							return run(cmd.Context(), dockerCli.Err(), src, rk, action)
 						}
 					} else {
 						_, _ = fmt.Fprintln(dockerCli.Out(), tui.Markdown(mdActions(rk)))
@@ -109,7 +110,7 @@ func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 				}
 
 				if action != "" {
-					return run(cmd.Context(), dockerCli.Err(), rk, action)
+					return run(cmd.Context(), dockerCli.Err(), src, rk, action)
 				}
 
 				return cmd.Help()
@@ -147,17 +148,38 @@ func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 	f := cmd.Flags()
 	f.BoolVarP(&docs, "docs", "d", false, "Print the documentation of the image")
 	f.BoolVarP(&list, "list", "l", false, "List available actions")
+	f.BoolVar(&ask, "ask", false, "Do not read local configuration option values and always ask them")
 
 	return cmd
 }
 
-func run(ctx context.Context, out io.Writer, rk *runkit.RunKit, action string) error {
+func getValuesLocal(src, action string) map[string]string {
+	opts := make(map[string]string)
+	if ask {
+		return opts
+	}
+
+	lc := runkit.GetLocalConfig()
+	img, ok := lc.Images[src]
+	if !ok {
+		return opts
+	}
+	act, ok := img.Actions[action]
+	if !ok {
+		return opts
+	}
+	return act.Opts
+}
+
+func run(ctx context.Context, out io.Writer, src string, rk *runkit.RunKit, action string) error {
 	runnable, err := rk.GetRunnable(action)
 	if err != nil {
 		return err
 	}
 
-	opts, err := prompt.Ask(runnable.Action)
+	localOpts := getValuesLocal(src, action)
+
+	opts, err := prompt.Ask(runnable.Action, localOpts)
 	if err != nil {
 		return err
 	}

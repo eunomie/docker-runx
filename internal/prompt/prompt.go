@@ -47,19 +47,21 @@ func envStr(env []string) string {
 	return " (required env: " + strings.Join(env, ", ") + ")"
 }
 
-func Ask(action runkit.Action) (map[string]string, error) {
+func Ask(action runkit.Action, opts map[string]string) (map[string]string, error) {
 	if len(action.Options) == 0 {
 		return nil, nil
 	}
 
 	var (
 		err    error
-		opts   = map[string]string{}
 		form   *huh.Form
 		fields []huh.Field
 	)
 
 	for _, opt := range action.Options {
+		if _, ok := opts[opt.Name]; ok {
+			continue
+		}
 		opt := opt
 		if len(opt.Values) == 0 {
 			fields = append(fields,
@@ -77,6 +79,10 @@ func Ask(action runkit.Action) (map[string]string, error) {
 						return huh.NewOption(str, str)
 					})...))
 		}
+	}
+
+	if len(fields) == 0 {
+		return opts, nil
 	}
 
 	form = huh.NewForm(huh.NewGroup(fields...))

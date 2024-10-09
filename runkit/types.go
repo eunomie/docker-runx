@@ -38,7 +38,12 @@ type (
 	}
 
 	ConfigImage struct {
-		Default string `yaml:"default,omitempty" json:"default,omitempty"`
+		Default string                  `yaml:"default,omitempty" json:"default,omitempty"`
+		Actions map[string]ConfigAction `yaml:"actions,omitempty" json:"actions,omitempty"`
+	}
+
+	ConfigAction struct {
+		Opts map[string]string `yaml:"opts,omitempty" json:"opts,omitempty"`
 	}
 )
 

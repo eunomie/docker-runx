@@ -13,6 +13,16 @@ clink:
     - docker_runx_help.yaml
     - docker_runx_version.yaml
 options:
+    - option: ask
+      value_type: bool
+      default_value: "false"
+      description: Do not read local configuration option values and always ask them
+      deprecated: false
+      hidden: false
+      experimental: false
+      experimentalcli: false
+      kubernetes: false
+      swarm: false
     - option: docs
       shorthand: d
       value_type: bool
