@@ -21,6 +21,7 @@ func Decorate(ctx context.Context, src, dest string, runxConfig []byte) error {
 		index                    v1.ImageIndex
 		remoteOpts               = registry.WithOptions(ctx, nil)
 		ref, _                   = name.ParseReference(src)
+		desc                     *remote.Descriptor
 		destRef, _               = name.ParseReference(dest)
 		runxImage, runxDesc, err = runkit.Image(runxConfig)
 	)
@@ -29,7 +30,7 @@ func Decorate(ctx context.Context, src, dest string, runxConfig []byte) error {
 		return fmt.Errorf("could not create runx image: %w", err)
 	}
 
-	desc, err := remote.Get(ref, remoteOpts...)
+	desc, err = remote.Get(ref, remoteOpts...)
 	if err != nil {
 		return fmt.Errorf("could not get image %s: %w", src, err)
 	}

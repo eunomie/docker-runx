@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli-plugins/plugin"
@@ -12,23 +13,28 @@ import (
 	"github.com/eunomie/docker-runx/internal/commands/help"
 	"github.com/eunomie/docker-runx/internal/commands/version"
 	"github.com/eunomie/docker-runx/internal/constants"
+	"github.com/eunomie/docker-runx/runkit"
 )
 
 func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 	var (
 		name = commandName(isPlugin)
 		cmd  = &cobra.Command{
-			Use:   fmt.Sprintf("%s [command]", name),
+			Use:   fmt.Sprintf("%s [IMAGE]", name),
 			Short: "Docker Run, better",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				if len(args) == 0 {
 					return cmd.Help()
 				}
-				_ = cmd.Help()
-				return cli.StatusError{
-					StatusCode: 1,
-					Status:     fmt.Sprintf("unknown command: %q", args[0]),
+
+				src := args[0]
+
+				actions, err := runkit.Get(cmd.Context(), src)
+				if err != nil {
+					return err
 				}
+
+				return yaml.NewEncoder(cmd.OutOrStdout()).Encode(actions)
 			},
 		}
 	)

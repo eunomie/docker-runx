@@ -10,6 +10,7 @@ import (
 )
 
 const (
+	RunxAnnotation   = "vnd.docker.reference.type"
 	RunxManifestType = "runx-manifest"
 	RunxConfigType   = "application/vnd.runx.config+yaml"
 )
@@ -34,7 +35,7 @@ func Image(runxConfig []byte) (v1.Image, *v1.Descriptor, error) {
 	desc, _ := partial.Descriptor(img)
 	desc.Platform = config.Platform()
 	desc.Annotations = make(map[string]string)
-	desc.Annotations["vnd.docker.reference.type"] = RunxManifestType
+	desc.Annotations[RunxAnnotation] = RunxManifestType
 
 	return img, desc, nil
 }

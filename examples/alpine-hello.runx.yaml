@@ -1,4 +1,4 @@
 actions:
   - id: hello
     type: run
-    cmds: --rm {{.Ref}} echo hello
+    cmd: --rm {{.Ref}} echo hello
