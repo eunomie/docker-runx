@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"os"
 	"strings"
 
+	"github.com/charmbracelet/huh/spinner"
 	"github.com/gertd/go-pluralize"
 	"github.com/spf13/cobra"
 
@@ -37,8 +39,22 @@ func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 					return cmd.Help()
 				}
 
-				src := args[0]
-				rk, err := runkit.Get(cmd.Context(), src)
+				var (
+					src = args[0]
+					err error
+					rk  *runkit.RunKit
+				)
+
+				err = spinner.New().
+					Type(spinner.Globe).
+					Title(" Fetching runx details...").
+					Action(func() {
+						rk, err = runkit.Get(cmd.Context(), src)
+						if err != nil {
+							_, _ = fmt.Fprintln(dockerCli.Err(), err)
+							os.Exit(1)
+						}
+					}).Run()
 				if err != nil {
 					return err
 				}

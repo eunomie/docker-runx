@@ -63,7 +63,7 @@ func NewCmd(dockerCli command.Cli) *cobra.Command {
 			image := args[0]
 
 			err = spinner.New().
-				Type(spinner.MiniDot).
+				Type(spinner.Globe).
 				Title(" Decorating and pushing...").
 				Action(func() {
 					err = runkit.Decorate(cmd.Context(), image, tag, config, readme)
