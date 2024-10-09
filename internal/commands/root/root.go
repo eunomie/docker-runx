@@ -8,6 +8,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli-plugins/plugin"
 	"github.com/docker/cli/cli/command"
+	"github.com/eunomie/docker-runx/internal/commands/decorate"
 	"github.com/eunomie/docker-runx/internal/commands/help"
 	"github.com/eunomie/docker-runx/internal/commands/version"
 	"github.com/eunomie/docker-runx/internal/constants"
@@ -56,6 +57,7 @@ func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 	cmd.AddCommand(
 		help.NewCmd(dockerCli, cmd),
 		version.NewCmd(dockerCli),
+		decorate.NewCmd(dockerCli),
 	)
 
 	return cmd

@@ -5,10 +5,11 @@ Docker Run, better
 
 ### Subcommands
 
-| Name                         | Description                                      |
-|:-----------------------------|:-------------------------------------------------|
-| [`help`](runx_help.md)       | Display information about the available commands |
-| [`version`](runx_version.md) | Show Docker RunX version information             |
+| Name                           | Description                                      |
+|:-------------------------------|:-------------------------------------------------|
+| [`decorate`](runx_decorate.md) | Decorate an image by attaching a runx manifest   |
+| [`help`](runx_help.md)         | Display information about the available commands |
+| [`version`](runx_version.md)   | Show Docker RunX version information             |
 
 
 

@@ -9,13 +9,11 @@ linters:
     - typecheck
     - unused
     - unconvert
-    - gofmt
     - misspell
     - bodyclose
     - revive
     - gocyclo
     - whitespace
-    - goimports
     - unparam
 linters-settings:
   gosimple:

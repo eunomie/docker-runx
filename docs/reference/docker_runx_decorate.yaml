@@ -1,0 +1,34 @@
+command: docker runx decorate
+short: Decorate an image by attaching a runx manifest
+long: Decorate an image by attaching a runx manifest
+usage: docker runx decorate OPTIONS IMAGE
+pname: docker runx
+plink: docker_runx.yaml
+options:
+    - option: tag
+      shorthand: t
+      value_type: string
+      description: Tag to push the decorated image to
+      deprecated: false
+      hidden: false
+      experimental: false
+      experimentalcli: false
+      kubernetes: false
+      swarm: false
+    - option: with-config
+      value_type: string
+      default_value: runx.yaml
+      description: Path to the runx manifest file
+      deprecated: false
+      hidden: false
+      experimental: false
+      experimentalcli: false
+      kubernetes: false
+      swarm: false
+deprecated: false
+hidden: false
+experimental: false
+experimentalcli: false
+kubernetes: false
+swarm: false
+
