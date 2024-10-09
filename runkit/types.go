@@ -30,6 +30,10 @@ type (
 	}
 
 	ActionType string
+
+	LocalConfig struct {
+		Ref string `yaml:"ref,omitempty" json:"ref,omitempty"`
+	}
 )
 
 const (

@@ -19,6 +19,7 @@ import (
 	"github.com/eunomie/docker-runx/internal/commands/version"
 	"github.com/eunomie/docker-runx/internal/constants"
 	"github.com/eunomie/docker-runx/internal/prompt"
+	"github.com/eunomie/docker-runx/internal/registry"
 	"github.com/eunomie/docker-runx/internal/tui"
 	"github.com/eunomie/docker-runx/runkit"
 )
@@ -35,12 +36,41 @@ func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 			Use:   fmt.Sprintf("%s [IMAGE] [ACTION]", name),
 			Short: "Docker Run, better",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				if len(args) == 0 || len(args) > 2 {
+				var (
+					src    string
+					action string
+					lc     = runkit.GetLocalConfig()
+				)
+
+				switch len(args) {
+				case 0:
+					src = lc.Ref
+					if src == "" {
+						return cmd.Help()
+					}
+				case 1:
+					if lc.Ref == "" {
+						src = args[0]
+					} else {
+						// here we need to know if the argument is an image or an action
+						// there's no easy way, so what we'll do is to check if the argument is a reachable image
+						if registry.ImageExist(cmd.Context(), args[0]) {
+							// the image exist, let's say we override the default reference
+							src = args[0]
+						} else {
+							// we can't access the image, let's say it's an action
+							src = lc.Ref
+							action = args[0]
+						}
+					}
+				case 2:
+					src = args[0]
+					action = args[1]
+				default:
 					return cmd.Help()
 				}
 
 				var (
-					src = args[0]
 					err error
 					rk  *runkit.RunKit
 				)
@@ -64,7 +94,7 @@ func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 					return nil
 				}
 
-				if list || len(args) == 1 {
+				if list || action == "" {
 					if tui.IsATTY(dockerCli.In().FD()) {
 						action := prompt.SelectAction(rk.Config.Actions)
 						if action != "" {
@@ -76,9 +106,7 @@ func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 					return nil
 				}
 
-				if len(args) == 2 {
-					action := args[1]
-
+				if action != "" {
 					return run(cmd.Context(), dockerCli.Err(), rk, action)
 				}
 
