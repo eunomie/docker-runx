@@ -16,14 +16,14 @@ import (
 	"github.com/eunomie/docker-runx/internal/runkit"
 )
 
-func Decorate(ctx context.Context, src, dest string, runxConfig []byte) error {
+func Decorate(ctx context.Context, src, dest string, runxConfig, runxDoc []byte) error {
 	var (
 		index                    v1.ImageIndex
+		desc                     *remote.Descriptor
 		remoteOpts               = registry.WithOptions(ctx, nil)
 		ref, _                   = name.ParseReference(src)
-		desc                     *remote.Descriptor
 		destRef, _               = name.ParseReference(dest)
-		runxImage, runxDesc, err = runkit.Image(runxConfig)
+		runxImage, runxDesc, err = runkit.Image(runxConfig, runxDoc)
 	)
 
 	if err != nil {

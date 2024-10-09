@@ -13,18 +13,32 @@ const (
 	RunxAnnotation   = "vnd.docker.reference.type"
 	RunxManifestType = "runx-manifest"
 	RunxConfigType   = "application/vnd.runx.config+yaml"
+	RunxDocType      = "application/vnd.runx.readme+txt"
 )
 
-func Image(runxConfig []byte) (v1.Image, *v1.Descriptor, error) {
+func Image(runxConfig, runxDoc []byte) (v1.Image, *v1.Descriptor, error) {
+	var err error
+
 	img := mutate.MediaType(empty.Image, types.OCIManifestSchema1)
 	img = mutate.ConfigMediaType(img, types.OCIConfigJSON)
 
-	runxConfigLayer := static.NewLayer(runxConfig, RunxConfigType)
-	img, err := mutate.Append(img, mutate.Addendum{
-		Layer: runxConfigLayer,
-	})
-	if err != nil {
-		return nil, nil, err
+	if len(runxConfig) > 0 {
+		runxConfigLayer := static.NewLayer(runxConfig, RunxConfigType)
+		img, err = mutate.Append(img, mutate.Addendum{
+			Layer: runxConfigLayer,
+		})
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+	if len(runxDoc) > 0 {
+		runxDocLayer := static.NewLayer(runxDoc, RunxDocType)
+		img, err = mutate.Append(img, mutate.Addendum{
+			Layer: runxDocLayer,
+		})
+		if err != nil {
+			return nil, nil, err
+		}
 	}
 
 	config, _ := img.ConfigFile()

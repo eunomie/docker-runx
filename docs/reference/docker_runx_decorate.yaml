@@ -25,6 +25,16 @@ options:
       experimentalcli: false
       kubernetes: false
       swarm: false
+    - option: with-readme
+      value_type: string
+      default_value: README.md
+      description: Path to the README file
+      deprecated: false
+      hidden: false
+      experimental: false
+      experimentalcli: false
+      kubernetes: false
+      swarm: false
 deprecated: false
 hidden: false
 experimental: false

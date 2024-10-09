@@ -16,6 +16,8 @@ import (
 var (
 	configFile string
 	config     []byte
+	readmeFile string
+	readme     []byte
 	tag        string
 	err        error
 )
@@ -30,12 +32,21 @@ func NewCmd(_ command.Cli) *cobra.Command {
 				return errors.New("missing required flag: --tag")
 			}
 
-			if configFile == "" {
-				return errors.New("missing required flag: --with-config")
+			if configFile == "" && readmeFile == "" {
+				return errors.New("provide at least one of the following flags: --with-config, --with-readme")
 			}
-			config, err = os.ReadFile(configFile)
-			if err != nil {
-				return err
+			if configFile != "" {
+				config, err = os.ReadFile(configFile)
+				if err != nil {
+					return err
+				}
+			}
+
+			if readmeFile != "" {
+				readme, err = os.ReadFile(readmeFile)
+				if err != nil {
+					return err
+				}
 			}
 
 			return nil
@@ -47,7 +58,7 @@ func NewCmd(_ command.Cli) *cobra.Command {
 			s := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
 			s.Start()
 
-			err = runkit.Decorate(cmd.Context(), image, tag, config)
+			err = runkit.Decorate(cmd.Context(), image, tag, config, readme)
 			s.Stop()
 			if err != nil {
 				return err
@@ -59,6 +70,7 @@ func NewCmd(_ command.Cli) *cobra.Command {
 
 	f := cmd.Flags()
 	f.StringVar(&configFile, "with-config", "runx.yaml", "Path to the runx manifest file")
+	f.StringVar(&readmeFile, "with-readme", "README.md", "Path to the README file")
 	f.StringVarP(&tag, "tag", "t", "", "Tag to push the decorated image to")
 
 	return cmd
