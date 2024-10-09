@@ -35,7 +35,9 @@ Create a `runx.yaml` file with the following content:
 actions:
   - id: hello # required, the action identifier
     type: run # required, the action type, only `run` is supported for now
-    cmd: --rm {{.Ref}} echo hello # `.Ref` will be replaced by the reference the user provided
+    env: # a list of environment variables that needs to be set
+      - USER
+    cmd: --rm {{.Ref}} echo hello {{env "USER"}} # `.Ref` will be replaced by the reference the user provided
 ```
 
 And let's create a documentation file called `README.md`:

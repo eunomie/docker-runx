@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/gertd/go-pluralize"
 	"github.com/spf13/cobra"
 
 	"github.com/docker/cli/cli"
@@ -109,10 +110,18 @@ func commandName(isPlugin bool) string {
 }
 
 func mdActions(rk *runkit.RunKit) string {
+	p := pluralize.NewClient()
 	s := strings.Builder{}
 	s.WriteString("# Available actions\n\n")
 	for _, action := range rk.Config.Actions {
 		s.WriteString(fmt.Sprintf("  - `%s`\n", action.ID))
+		vars := "variable"
+		if len(action.Env) > 1 {
+			vars = p.Plural(vars)
+		}
+		if len(action.Env) > 0 {
+			s.WriteString("    - Environment " + vars + ": " + strings.Join(tui.BackQuoteItems(action.Env), ", ") + "\n")
+		}
 	}
 
 	return s.String()

@@ -20,6 +20,7 @@ type (
 
 	TemplateData struct {
 		Ref string
+		Env map[string]string
 	}
 )
 
@@ -45,19 +46,34 @@ func (action Action) GetRunnable(ref string) (*Runnable, error) {
 		return nil, fmt.Errorf("unsupported action type %s", action.Type)
 	}
 
+	data := TemplateData{
+		Ref: ref,
+		Env: map[string]string{},
+	}
+
+	for _, env := range action.Env {
+		if v, ok := os.LookupEnv(env); !ok {
+			return nil, fmt.Errorf("environment variable %q is required", env)
+		} else {
+			data.Env[env] = v
+		}
+	}
+
 	runnable := Runnable{
 		Command: "docker run",
 	}
 
-	tmpl, err := template.New(action.ID).Parse(action.Command)
+	tmpl, err := template.New(action.ID).Funcs(template.FuncMap{
+		"env": func(envName string) string {
+			return data.Env[envName]
+		},
+	}).Parse(action.Command)
 	if err != nil {
 		return nil, err
 	}
 
 	out := strings.Builder{}
-	err = tmpl.Execute(&out, TemplateData{
-		Ref: ref,
-	})
+	err = tmpl.Execute(&out, data)
 	if err != nil {
 		return nil, err
 	}

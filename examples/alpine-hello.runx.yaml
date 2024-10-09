@@ -1,4 +1,6 @@
 actions:
   - id: hello
     type: run
-    cmd: --rm {{.Ref}} echo hello
+    env:
+      - USER
+    cmd: --rm {{.Ref}} echo hello {{env "USER"}}

@@ -32,3 +32,11 @@ func Markdown(str string) string {
 	}
 	return out
 }
+
+func BackQuoteItems(items []string) []string {
+	var out []string
+	for _, item := range items {
+		out = append(out, "`"+item+"`")
+	}
+	return out
+}
