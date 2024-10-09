@@ -4,9 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"time"
 
-	"github.com/briandowns/spinner"
+	"github.com/charmbracelet/huh/spinner"
 	"github.com/spf13/cobra"
 
 	"github.com/docker/cli/cli/command"
@@ -24,7 +23,7 @@ var (
 	err          error
 )
 
-func NewCmd(_ command.Cli) *cobra.Command {
+func NewCmd(dockerCli command.Cli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "decorate OPTIONS IMAGE",
 		Short: "Decorate an image by attaching a runx manifest",
@@ -63,12 +62,17 @@ func NewCmd(_ command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			image := args[0]
 
-			fmt.Println("decorating...")
-			s := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
-			s.Start()
-
-			err = runkit.Decorate(cmd.Context(), image, tag, config, readme)
-			s.Stop()
+			err = spinner.New().
+				Type(spinner.MiniDot).
+				Title(" Decorating and pushing...").
+				Action(func() {
+					err = runkit.Decorate(cmd.Context(), image, tag, config, readme)
+					if err != nil {
+						_, _ = fmt.Fprintln(dockerCli.Err(), err)
+						os.Exit(1)
+					}
+				}).
+				Run()
 			if err != nil {
 				return err
 			}
