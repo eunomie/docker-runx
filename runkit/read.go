@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/google/go-containerregistry/pkg/name"
 	v1 "github.com/google/go-containerregistry/pkg/v1"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 
 	"github.com/eunomie/docker-runx/internal/registry"
 	"github.com/eunomie/docker-runx/internal/runkit"
@@ -97,6 +98,14 @@ func Get(ctx context.Context, src string) (*RunKit, error) {
 		if err = yaml.Unmarshal(runxConfig, &config); err != nil {
 			return nil, fmt.Errorf("could not unmarshal runx config %s: %w", src, err)
 		}
+		var actions []Action
+		// TODO: fix reading of multiline YAML strings
+		for _, a := range config.Actions {
+			// a := a
+			a.Command = strings.ReplaceAll(a.Command, "\n", " ")
+			actions = append(actions, a)
+		}
+		config.Actions = actions
 		rk.Config = config
 	}
 

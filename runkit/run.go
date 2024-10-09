@@ -136,5 +136,5 @@ func sh(ctx context.Context, cmd string) (string, error) {
 		return "", err
 	}
 
-	return osOut.String(), nil
+	return strings.TrimSpace(osOut.String()), nil
 }
