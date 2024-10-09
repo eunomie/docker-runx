@@ -2,6 +2,7 @@ package root
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -16,7 +17,10 @@ import (
 	"github.com/eunomie/docker-runx/runkit"
 )
 
-var docs bool
+var (
+	docs bool
+	list bool
+)
 
 func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 	var (
@@ -36,7 +40,12 @@ func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 				}
 
 				if docs {
-					_, _ = fmt.Fprintln(dockerCli.Out(), tui.Markdown(rk.Readme))
+					_, _ = fmt.Fprintln(dockerCli.Out(), tui.Markdown(rk.Readme+"\n---\n"+mdActions(rk)))
+					return nil
+				}
+
+				if list {
+					_, _ = fmt.Fprintln(dockerCli.Out(), tui.Markdown(mdActions(rk)))
 					return nil
 				}
 
@@ -86,6 +95,7 @@ func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 
 	f := cmd.Flags()
 	f.BoolVarP(&docs, "docs", "d", false, "Print the documentation of the image")
+	f.BoolVarP(&list, "list", "l", false, "List available actions")
 
 	return cmd
 }
@@ -96,4 +106,14 @@ func commandName(isPlugin bool) string {
 		name = constants.BinaryName
 	}
 	return name
+}
+
+func mdActions(rk *runkit.RunKit) string {
+	s := strings.Builder{}
+	s.WriteString("# Available actions\n\n")
+	for _, action := range rk.Config.Actions {
+		s.WriteString(fmt.Sprintf("  - `%s`\n", action.ID))
+	}
+
+	return s.String()
 }

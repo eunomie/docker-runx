@@ -17,6 +17,7 @@ Docker Run, better
 | Name           | Type   | Default | Description                          |
 |:---------------|:-------|:--------|:-------------------------------------|
 | `-d`, `--docs` | `bool` |         | Print the documentation of the image |
+| `-l`, `--list` | `bool` |         | List available actions               |
 
 
 <!---MARKER_GEN_END-->
