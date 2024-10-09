@@ -57,7 +57,11 @@ func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 						return err
 					}
 
-					_, _ = fmt.Fprintf(dockerCli.Err(), "\nRunning the following command:\n$ %s\n\n", runnable)
+					_, _ = fmt.Fprintln(dockerCli.Err(), tui.Markdown(fmt.Sprintf(`
+> **Running the following command:**
+>
+>     %s
+`, runnable)))
 
 					return runnable.Run(cmd.Context())
 				}
