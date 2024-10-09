@@ -14,12 +14,14 @@ import (
 )
 
 var (
-	configFile string
-	config     []byte
-	readmeFile string
-	readme     []byte
-	tag        string
-	err        error
+	noConfigFile bool
+	configFile   string
+	config       []byte
+	noReadmeFile bool
+	readmeFile   string
+	readme       []byte
+	tag          string
+	err          error
 )
 
 func NewCmd(_ command.Cli) *cobra.Command {
@@ -32,8 +34,15 @@ func NewCmd(_ command.Cli) *cobra.Command {
 				return errors.New("missing required flag: --tag")
 			}
 
+			if noConfigFile {
+				configFile = ""
+			}
+			if noReadmeFile {
+				readmeFile = ""
+			}
+
 			if configFile == "" && readmeFile == "" {
-				return errors.New("provide at least one of the following flags: --with-config, --with-readme")
+				return errors.New("you need to provide a config file or a readme file, or both")
 			}
 			if configFile != "" {
 				config, err = os.ReadFile(configFile)
@@ -69,7 +78,9 @@ func NewCmd(_ command.Cli) *cobra.Command {
 	}
 
 	f := cmd.Flags()
-	f.StringVar(&configFile, "with-config", "runx.yaml", "Path to the runx manifest file")
+	f.BoolVar(&noConfigFile, "no-config", false, "Do not attach a runx configuration to the image")
+	f.StringVar(&configFile, "with-config", "runx.yaml", "Path to the runx configuration file")
+	f.BoolVar(&noReadmeFile, "no-readme", false, "Do not attach a README to the image")
 	f.StringVar(&readmeFile, "with-readme", "README.md", "Path to the README file")
 	f.StringVarP(&tag, "tag", "t", "", "Tag to push the decorated image to")
 
