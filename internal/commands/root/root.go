@@ -28,6 +28,7 @@ var (
 	docs bool
 	list bool
 	ask  bool
+	opts []string
 )
 
 func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
@@ -99,9 +100,9 @@ func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 
 				if list || action == "" {
 					if tui.IsATTY(dockerCli.In().FD()) {
-						action := prompt.SelectAction(rk.Config.Actions)
-						if action != "" {
-							return run(cmd.Context(), dockerCli.Err(), src, rk, action)
+						selectedAction := prompt.SelectAction(rk.Config.Actions)
+						if selectedAction != "" {
+							return run(cmd.Context(), dockerCli.Err(), src, rk, selectedAction)
 						}
 					} else {
 						_, _ = fmt.Fprintln(dockerCli.Out(), tui.Markdown(mdActions(rk)))
@@ -149,6 +150,7 @@ func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 	f.BoolVarP(&docs, "docs", "d", false, "Print the documentation of the image")
 	f.BoolVarP(&list, "list", "l", false, "List available actions")
 	f.BoolVar(&ask, "ask", false, "Do not read local configuration option values and always ask them")
+	f.StringArrayVar(&opts, "opt", nil, "Set an option value")
 
 	return cmd
 }
@@ -180,12 +182,20 @@ func run(ctx context.Context, out io.Writer, src string, rk *runkit.RunKit, acti
 
 	localOpts := getValuesLocal(src, action)
 
-	opts, err := prompt.Ask(runnable.Action, localOpts)
+	for _, opt := range opts {
+		if key, value, ok := strings.Cut(opt, "="); ok {
+			localOpts[key] = value
+		} else {
+			return fmt.Errorf("invalid option value %s", opt)
+		}
+	}
+
+	options, err := prompt.Ask(runnable.Action, localOpts)
 	if err != nil {
 		return err
 	}
 
-	if err = runnable.SetOptionValues(opts); err != nil {
+	if err = runnable.SetOptionValues(options); err != nil {
 		return err
 	}
 

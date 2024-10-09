@@ -45,6 +45,16 @@ options:
       experimentalcli: false
       kubernetes: false
       swarm: false
+    - option: opt
+      value_type: stringArray
+      default_value: '[]'
+      description: Set an option value
+      deprecated: false
+      hidden: false
+      experimental: false
+      experimentalcli: false
+      kubernetes: false
+      swarm: false
 deprecated: false
 hidden: false
 experimental: false

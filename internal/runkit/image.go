@@ -10,12 +10,10 @@ import (
 )
 
 const (
-	RunxAnnotation         = "vnd.docker.reference.type"
-	RunxManifestType       = "runx-manifest"
-	RunxConfigType         = "application/vnd.runx.config+yaml"
-	RunxDocType            = "application/vnd.runx.readme+txt"
-	RunxFileNameAnnotation = "vnd.runx.filename"
-	RunxLayerFile          = "application/vnd.runx.file.gzip"
+	RunxAnnotation   = "vnd.docker.reference.type"
+	RunxManifestType = "runx-manifest"
+	RunxConfigType   = "application/vnd.runx.config+yaml"
+	RunxDocType      = "application/vnd.runx.readme+txt"
 )
 
 func Image(runxConfig, runxDoc []byte) (v1.Image, *v1.Descriptor, error) {
