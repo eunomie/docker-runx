@@ -2,8 +2,14 @@ package runkit
 
 type (
 	RunKit struct {
+		Config Config
+		Readme string
+
+		src string
+	}
+
+	Config struct {
 		Actions []Action `yaml:"actions" json:"actions"`
-		src     string
 	}
 
 	Action struct {

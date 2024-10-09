@@ -23,14 +23,17 @@ type (
 	}
 )
 
-func GetRunnable(actions *RunKit, action string) (*Runnable, error) {
-	return actions.GetRunnable(action)
+func GetRunnable(rk *RunKit, action string) (*Runnable, error) {
+	if rk == nil || len(rk.Config.Actions) == 0 {
+		return nil, fmt.Errorf("no available configuration is nil")
+	}
+	return rk.GetRunnable(action)
 }
 
-func (actions *RunKit) GetRunnable(action string) (*Runnable, error) {
-	for _, a := range actions.Actions {
+func (rk *RunKit) GetRunnable(action string) (*Runnable, error) {
+	for _, a := range rk.Config.Actions {
 		if a.ID == action {
-			return a.GetRunnable(actions.src)
+			return a.GetRunnable(rk.src)
 		}
 	}
 

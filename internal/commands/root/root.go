@@ -12,8 +12,11 @@ import (
 	"github.com/eunomie/docker-runx/internal/commands/help"
 	"github.com/eunomie/docker-runx/internal/commands/version"
 	"github.com/eunomie/docker-runx/internal/constants"
+	"github.com/eunomie/docker-runx/internal/tui"
 	"github.com/eunomie/docker-runx/runkit"
 )
+
+var docs bool
 
 func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 	var (
@@ -22,28 +25,34 @@ func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 			Use:   fmt.Sprintf("%s [IMAGE] [ACTION]", name),
 			Short: "Docker Run, better",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				if len(args) == 0 || len(args) != 2 {
+				if len(args) == 0 || len(args) > 2 {
 					return cmd.Help()
 				}
 
-				var (
-					src    = args[0]
-					action = args[1]
-				)
-
-				actions, err := runkit.Get(cmd.Context(), src)
+				src := args[0]
+				rk, err := runkit.Get(cmd.Context(), src)
 				if err != nil {
 					return err
 				}
 
-				runnable, err := actions.GetRunnable(action)
-				if err != nil {
-					return err
+				if docs {
+					_, _ = fmt.Fprintln(dockerCli.Out(), tui.Markdown(rk.Readme))
+					return nil
 				}
 
-				_, _ = fmt.Fprintf(dockerCli.Out(), "\nRunning the following command:\n$ %s\n\n", runnable)
+				if len(args) == 2 {
+					action := args[1]
+					runnable, err := rk.GetRunnable(action)
+					if err != nil {
+						return err
+					}
 
-				return runnable.Run(cmd.Context())
+					_, _ = fmt.Fprintf(dockerCli.Out(), "\nRunning the following command:\n$ %s\n\n", runnable)
+
+					return runnable.Run(cmd.Context())
+				}
+
+				return cmd.Help()
 			},
 		}
 	)
@@ -74,6 +83,9 @@ func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 		version.NewCmd(dockerCli),
 		decorate.NewCmd(dockerCli),
 	)
+
+	f := cmd.Flags()
+	f.BoolVarP(&docs, "docs", "d", false, "Print the documentation of the image")
 
 	return cmd
 }

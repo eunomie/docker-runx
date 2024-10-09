@@ -23,7 +23,9 @@ func Get(ctx context.Context, src string) (*RunKit, error) {
 		runxImg    v1.Image
 		layers     []v1.Layer
 		runxConfig []byte
-		actions    RunKit
+		runxDoc    []byte
+		config     Config
+		rk         RunKit
 		remoteOpts = registry.WithOptions(ctx, nil)
 		ref, _     = name.ParseReference(src)
 	)
@@ -66,28 +68,43 @@ func Get(ctx context.Context, src string) (*RunKit, error) {
 	}
 
 	for _, l := range layers {
-		if mt, err := l.MediaType(); err == nil && mt == runkit.RunxConfigType {
+		mt, err := l.MediaType()
+		if err != nil {
+			continue
+		}
+		if mt == runkit.RunxConfigType {
 			dataReader, err := l.Uncompressed()
 			if err != nil {
-				return nil, fmt.Errorf("could not read runx actions %s: %w", src, err)
+				return nil, fmt.Errorf("could not read runx config %s: %w", src, err)
 			}
 			runxConfig, err = io.ReadAll(dataReader)
 			if err != nil {
-				return nil, fmt.Errorf("could not read runx actions %s: %w", src, err)
+				return nil, fmt.Errorf("could not read runx config %s: %w", src, err)
 			}
-			break
+		} else if mt == runkit.RunxDocType {
+			dataReader, err := l.Uncompressed()
+			if err != nil {
+				return nil, fmt.Errorf("could not read runx config %s: %w", src, err)
+			}
+			runxDoc, err = io.ReadAll(dataReader)
+			if err != nil {
+				return nil, fmt.Errorf("could not read runx config %s: %w", src, err)
+			}
 		}
 	}
 
-	if len(runxConfig) == 0 {
-		return nil, fmt.Errorf("image %s can't be read by 'docker runx': no runx actions found", src)
+	if len(runxConfig) != 0 {
+		if err = yaml.Unmarshal(runxConfig, &config); err != nil {
+			return nil, fmt.Errorf("could not unmarshal runx config %s: %w", src, err)
+		}
+		rk.Config = config
 	}
 
-	if err = yaml.Unmarshal(runxConfig, &actions); err != nil {
-		return nil, fmt.Errorf("could not unmarshal runx actions %s: %w", src, err)
+	if len(runxDoc) != 0 {
+		rk.Readme = string(runxDoc)
 	}
 
-	actions.src = src
+	rk.src = src
 
-	return &actions, nil
+	return &rk, nil
 }

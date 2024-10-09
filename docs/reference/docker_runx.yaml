@@ -12,6 +12,18 @@ clink:
     - docker_runx_decorate.yaml
     - docker_runx_help.yaml
     - docker_runx_version.yaml
+options:
+    - option: docs
+      shorthand: d
+      value_type: bool
+      default_value: "false"
+      description: Print the documentation of the image
+      deprecated: false
+      hidden: false
+      experimental: false
+      experimentalcli: false
+      kubernetes: false
+      swarm: false
 deprecated: false
 hidden: false
 experimental: false

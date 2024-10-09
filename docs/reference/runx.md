@@ -12,6 +12,12 @@ Docker Run, better
 | [`version`](runx_version.md)   | Show Docker RunX version information             |
 
 
+### Options
+
+| Name           | Type   | Default | Description                          |
+|:---------------|:-------|:--------|:-------------------------------------|
+| `-d`, `--docs` | `bool` |         | Print the documentation of the image |
+
 
 <!---MARKER_GEN_END-->
 
