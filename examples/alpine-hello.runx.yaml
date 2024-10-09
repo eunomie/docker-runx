@@ -19,3 +19,39 @@ actions:
         required: true
     cmd: >
       --rm {{.Ref}} echo hello {{opt "name"}}
+
+  - id: lint
+    desc: Run golangci-lint
+    type: run
+    shell:
+      pwd: pwd
+      gopath: go env GOPATH
+      gocache: go env GOCACHE
+    cmd: >
+      --rm
+        -v {{sh "pwd"}}:/app
+        -v {{sh "gopath"}}/pkg:/go/pkg
+        -v {{sh "gocache"}}:/cache/go
+        -e GOFLAGS=-buildvcs=false
+        -e GOCACHE=/cache/go
+        -e GOLANGCI_LINT_CACHE=/cache/go
+        -w /app
+        golangci/golangci-lint
+        golangci-lint run -v --timeout 5m
+
+  - id: build
+    type: build
+    dockerfile: Dockerfile
+    opts:
+      - name: bin_name
+        prompt: Please enter then name of the binary
+        required: true
+      - name: platforms
+        prompt: "Please enter the comma separated list of platforms (ex: linux/amd64,linux/arm64)"
+    cmd: >
+      -f {{.Dockerfile}}
+      --build-arg BIN_NAME={{opt "bin_name"}}
+      {{if opt "platforms"}}--platform {{opt "platforms"}}{{end}}
+      --target export-bin
+      --output type=local,dest=dist/
+      .

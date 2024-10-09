@@ -1,12 +1,15 @@
 package decorate
 
 import (
+	"bytes"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"os"
 
 	"github.com/charmbracelet/huh/spinner"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
 
 	"github.com/docker/cli/cli/command"
 	"github.com/eunomie/docker-runx/runkit"
@@ -48,6 +51,36 @@ func NewCmd(dockerCli command.Cli) *cobra.Command {
 				if err != nil {
 					return err
 				}
+
+				fullConfig := bytes.NewBuffer(config)
+
+				var cfg runkit.Config
+				if err = yaml.Unmarshal(config, &cfg); err != nil {
+					return err
+				}
+
+				files := bytes.NewBuffer(nil)
+				for _, a := range cfg.Actions {
+					if a.Dockerfile != "" {
+						dockerfile, err := os.ReadFile(a.Dockerfile)
+						if err != nil {
+							return err
+						}
+						if dockerfileContent, err := b64Encode(dockerfile, nil); err != nil {
+							return err
+						} else {
+							files.WriteString(fmt.Sprintf("- name: %s\n  content: %s\n", a.Dockerfile, dockerfileContent))
+						}
+					}
+				}
+
+				if files.Len() > 0 {
+					fullConfig.WriteString("\n---\n")
+					fullConfig.WriteString("files:\n")
+					fullConfig.Write(files.Bytes())
+				}
+
+				config = fullConfig.Bytes()
 			}
 
 			if readmeFile != "" {
@@ -89,4 +122,11 @@ func NewCmd(dockerCli command.Cli) *cobra.Command {
 	f.StringVarP(&tag, "tag", "t", "", "Tag to push the decorated image to")
 
 	return cmd
+}
+
+func b64Encode(content []byte, err error) (string, error) {
+	if err != nil {
+		return "", err
+	}
+	return base64.StdEncoding.EncodeToString(content), nil
 }

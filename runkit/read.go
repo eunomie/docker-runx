@@ -1,7 +1,9 @@
 package runkit
 
 import (
+	"bytes"
 	"context"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"strings"
@@ -15,6 +17,13 @@ import (
 	"github.com/eunomie/docker-runx/internal/runkit"
 )
 
+type Files struct {
+	Files []struct {
+		Name    string `yaml:"name"`
+		Content string `yaml:"content"`
+	} `yaml:"files"`
+}
+
 func Get(ctx context.Context, src string) (*RunKit, error) {
 	var (
 		err        error
@@ -25,8 +34,11 @@ func Get(ctx context.Context, src string) (*RunKit, error) {
 		layers     []v1.Layer
 		runxConfig []byte
 		runxDoc    []byte
+		files      Files
 		config     Config
-		rk         RunKit
+		rk         = RunKit{
+			Files: make(map[string]string),
+		}
 		remoteOpts = registry.WithOptions(ctx, nil)
 		ref, _     = name.ParseReference(src)
 	)
@@ -95,14 +107,38 @@ func Get(ctx context.Context, src string) (*RunKit, error) {
 	}
 
 	if len(runxConfig) != 0 {
+		dec := yaml.NewDecoder(bytes.NewReader(runxConfig))
+		dec.KnownFields(true)
+		// first, the runx config itself
+		if err = dec.Decode(&config); err != nil {
+			return nil, fmt.Errorf("could not decode runx config %s: %w", src, err)
+		}
+		// then, the optional files
+		if err = dec.Decode(&files); err != nil && err != io.EOF {
+			return nil, fmt.Errorf("could not decode runx files %s: %w", src, err)
+		} else {
+			for _, f := range files.Files {
+				c, err := b64Decode(f.Content)
+				if err != nil {
+					return nil, fmt.Errorf("could not decode runx file %s: %w", f.Name, err)
+				}
+				rk.Files[f.Name] = string(c)
+			}
+		}
+
 		if err = yaml.Unmarshal(runxConfig, &config); err != nil {
 			return nil, fmt.Errorf("could not unmarshal runx config %s: %w", src, err)
 		}
 		var actions []Action
-		// TODO: fix reading of multiline YAML strings
 		for _, a := range config.Actions {
-			// a := a
+			// TODO: fix reading of multiline YAML strings
 			a.Command = strings.ReplaceAll(a.Command, "\n", " ")
+
+			if a.Dockerfile != "" {
+				if c, ok := rk.Files[a.Dockerfile]; ok {
+					a.DockerfileContent = c
+				}
+			}
 			actions = append(actions, a)
 		}
 		config.Actions = actions
@@ -116,4 +152,8 @@ func Get(ctx context.Context, src string) (*RunKit, error) {
 	rk.src = src
 
 	return &rk, nil
+}
+
+func b64Decode(content string) ([]byte, error) {
+	return base64.StdEncoding.DecodeString(content)
 }

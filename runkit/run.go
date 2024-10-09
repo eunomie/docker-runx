@@ -14,38 +14,48 @@ import (
 
 type (
 	Runnable struct {
-		Command string
-		command string
-		args    string
-		data    TemplateData
-		Action  Action
+		Command    string
+		command    string
+		args       string
+		data       TemplateData
+		Action     *Action
+		dockerfile string
 	}
 
 	TemplateData struct {
-		Ref  string
-		Env  map[string]string
-		Opts map[string]string
+		Ref        string
+		Env        map[string]string
+		Opts       map[string]string
+		Dockerfile string
 	}
 )
 
-func (rk *RunKit) GetRunnable(action string) (*Runnable, error) {
+var noop = func() {}
+
+func (rk *RunKit) GetRunnable(action string) (*Runnable, func(), error) {
 	for _, a := range rk.Config.Actions {
 		if a.ID == action {
 			return a.GetRunnable(rk.src)
 		}
 	}
 
-	return nil, fmt.Errorf("action %s not found", action)
+	return nil, noop, fmt.Errorf("action %s not found", action)
 }
 
-func (action Action) GetRunnable(ref string) (*Runnable, error) {
-	if action.Type != ActionTypeRun {
-		return nil, fmt.Errorf("unsupported action type %s", action.Type)
+var rootCommands = map[ActionType]string{
+	ActionTypeRun:   "docker run",
+	ActionTypeBuild: "docker buildx build",
+}
+
+func (action *Action) GetRunnable(ref string) (*Runnable, func(), error) {
+	rootCommand, ok := rootCommands[action.Type]
+	if !ok {
+		return nil, noop, fmt.Errorf("unsupported action type %s", action.Type)
 	}
 
 	runnable := Runnable{
 		Action:  action,
-		command: "docker run",
+		command: rootCommand,
 		data: TemplateData{
 			Ref: ref,
 			Env: map[string]string{},
@@ -54,13 +64,37 @@ func (action Action) GetRunnable(ref string) (*Runnable, error) {
 
 	for _, env := range action.Env {
 		if v, ok := os.LookupEnv(env); !ok {
-			return nil, fmt.Errorf("environment variable %q is required", env)
+			return nil, noop, fmt.Errorf("environment variable %q is required", env)
 		} else {
 			runnable.data.Env[env] = v
 		}
 	}
 
-	return &runnable, nil
+	if action.DockerfileContent != "" {
+		f, err := os.CreateTemp("", "runx.*.Dockerfile")
+		if err != nil {
+			return nil, noop, err
+		}
+		if _, err := f.Write([]byte(action.DockerfileContent)); err != nil {
+			f.Close() //nolint:errcheck
+			return nil, noop, err
+		}
+		runnable.dockerfile = f.Name()
+		runnable.data.Dockerfile = f.Name()
+		if err := f.Close(); err != nil {
+			return nil, noop, err
+		}
+	}
+
+	return &runnable, runnable.cleanup(), nil
+}
+
+func (r *Runnable) cleanup() func() {
+	return func() {
+		if r.dockerfile != "" {
+			_ = os.Remove(r.dockerfile)
+		}
+	}
 }
 
 func (r *Runnable) compute() error {

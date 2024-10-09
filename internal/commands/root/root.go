@@ -172,7 +172,8 @@ func getValuesLocal(src, action string) map[string]string {
 }
 
 func run(ctx context.Context, out io.Writer, src string, rk *runkit.RunKit, action string) error {
-	runnable, err := rk.GetRunnable(action)
+	runnable, cleanup, err := rk.GetRunnable(action)
+	defer cleanup()
 	if err != nil {
 		return err
 	}

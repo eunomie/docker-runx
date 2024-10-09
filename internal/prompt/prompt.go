@@ -47,7 +47,7 @@ func envStr(env []string) string {
 	return " (required env: " + strings.Join(env, ", ") + ")"
 }
 
-func Ask(action runkit.Action, opts map[string]string) (map[string]string, error) {
+func Ask(action *runkit.Action, opts map[string]string) (map[string]string, error) {
 	if len(action.Options) == 0 {
 		return nil, nil
 	}
