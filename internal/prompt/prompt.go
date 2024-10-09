@@ -6,6 +6,7 @@ import (
 	"github.com/charmbracelet/huh"
 
 	"github.com/eunomie/docker-runx/internal/pizza"
+	"github.com/eunomie/docker-runx/internal/sugar"
 	"github.com/eunomie/docker-runx/runkit"
 )
 
@@ -17,7 +18,12 @@ func SelectAction(actions []runkit.Action) string {
 				huh.NewSelect[string]().
 					Title("Select the action to run").
 					Options(pizza.Map[runkit.Action, huh.Option[string]](actions, func(action runkit.Action) huh.Option[string] {
-						return huh.NewOption(action.ID+envStr(action.Env), action.ID)
+						return huh.NewOption(
+							sugar.If(action.Desc == "",
+								action.ID,
+								action.ID+": "+action.Desc,
+							)+envStr(action.Env),
+							action.ID)
 					})...).
 					Value(&action),
 			),

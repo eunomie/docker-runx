@@ -1,5 +1,6 @@
 actions:
   - id: hello
+    desc: Say hello to the current user
     type: run
     env:
       - USER

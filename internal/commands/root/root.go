@@ -149,7 +149,11 @@ func mdActions(rk *runkit.RunKit) string {
 	s := strings.Builder{}
 	s.WriteString("# Available actions\n\n")
 	for _, action := range rk.Config.Actions {
-		s.WriteString(fmt.Sprintf("  - `%s`\n", action.ID))
+		if action.Desc != "" {
+			s.WriteString(fmt.Sprintf("  - `%s`: %s\n", action.ID, action.Desc))
+		} else {
+			s.WriteString(fmt.Sprintf("  - `%s`\n", action.ID))
+		}
 		vars := "variable"
 		if len(action.Env) > 1 {
 			vars = p.Plural(vars)
