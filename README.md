@@ -34,6 +34,7 @@ _This was initially created for the October 2024 [Docker](https://docker.com) Ha
   * [Local Override](#local-override)
 * [Implementation Details](#implementation-details)
 * [CLI Plugin Installation](#cli-plugin-installation)
+  * [Script Installation (macOS and Linux)](#script-installation-macos-and-linux)
   * [Manual Installation](#manual-installation)
 
 ## Main Usage
