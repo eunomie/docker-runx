@@ -1,0 +1,18 @@
+---
+---
+
+@import "{{ site.theme }}";
+
+header {
+    background: #505459;
+}
+
+#banner {
+    background: #f2f0e5;
+    border-color: #706f68;
+
+    .button {
+        border: 1px solid #706f68;
+        background: linear-gradient(#f2f0e5, #b6b4aa);
+    }
+}
