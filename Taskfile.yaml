@@ -51,7 +51,7 @@ tasks:
           -f Dockerfile \
           --platform {{.BIN_PLATFORMS}} \
           --target export-bin \
-          -o type=local,dest=dist \
+          -o type=local,dest=dist,platform-split=false \
           .
 
   go:fmt:

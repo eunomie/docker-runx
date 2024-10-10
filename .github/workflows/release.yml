@@ -38,4 +38,4 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            dist/*/docker-runx-*
+            dist/docker-runx-*
