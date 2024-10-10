@@ -23,7 +23,14 @@
                     ⠁
 ```
 
-See the [Docker RunX reference](/docs/reference/runx.md) for more information.
+* [Main Usage](#main-usage)
+* [Reference](#reference)
+  * [Usage](#usage)
+  * [Actions Definition](#actions-definition)
+  * [Local Override](#local-override)
+* [Implementation Details](#implementation-details)
+* [CLI Plugin Installation](#cli-plugin-installation)
+  * [Manual Installation](#manual-installation)
 
 ## Main Usage
 
@@ -74,6 +81,42 @@ $ docker runx NAMESPACE/REPOSITORY hello
 See more examples in the [examples](/examples) directory.
 
 ## Reference
+
+### Usage
+
+> `docker runx IMAGE --docs`
+>
+> Display the embedded documentation of an image and print the list of available actions.
+
+> `docker runx IMAGE --list`
+>
+> Display the list of available actions for an image and let the user pick the one they want to run.
+
+> `docker runx IMAGE ACTION`
+>
+> Run a specific action on an image.
+
+> `docker runx IMAGE ACTION --docs`
+>
+> Display a detailed documentation of a specific action. This will also display the list of available options, shell scripts, environment variables.
+
+> `docker runx IMAGE ACTION --opt OPTION_NAME=VALUE`
+>
+> Run a specific action and use the value provided on the command line instead of asking to the user.
+
+> `docker runx IMAGE`
+>
+> If a default action is defined in the image manifest, it will run it. If not it will list the available actions and let the user pick the one to run.
+
+> `docker runx decorate SRC_IMAGE --tag DEST_IMAGE`
+>
+> Decorate an image by adding the `runx` manifest to it. The `runx.yaml` and `README.md` files will be embedded in the image.
+>
+> If `scratch` is used as the source image, only the `runx` files will be embedded.
+>
+> The image will be pushed automatically, the image doesn't exist locally.
+
+See the [Docker RunX reference](/docs/reference/runx.md) for more information.
 
 ### Actions Definition
 
@@ -175,7 +218,8 @@ Here is an example of a `runx` based image index:
   "schemaVersion": 2, 
   "mediaType": "application/vnd.oci.image.index.v1+json", 
   "manifests": [
-    // other manifests...
+    {},
+    {},
     {
       "mediaType": "application/vnd.oci.image.manifest.v1+json", 
       "size": 533, 
