@@ -273,6 +273,23 @@ The `runx` image manifest will reference at max two layers, one for the `runx.ya
 
 ## CLI Plugin Installation
 
+### Script Installation (macOS and Linux)
+
+Install the `docker-runx` CLI plugin using the following command:
+
+```sh
+curl -sSfL https://raw.githubusercontent.com/eunomie/docker-runx/main/install.sh | sh -s --
+```
+
+You can also download [the installation script](https://github.com/eunomie/docker-runx/blob/main/install.sh) and run it locally:
+
+```sh
+DOWNLOAD_TAG_INSTALL_SCRIPT=false sh install.sh
+```
+
+Please be sure to have the `install.sh` script corresponding to the version you want to install.
+
+
 ### Manual Installation
 
 To install it manually:
