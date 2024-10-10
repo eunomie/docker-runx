@@ -56,6 +56,7 @@ func Ask(action *runkit.Action, opts map[string]string) (map[string]string, erro
 		err    error
 		form   *huh.Form
 		fields []huh.Field
+		asked  []string
 	)
 
 	for _, opt := range action.Options {
@@ -79,6 +80,7 @@ func Ask(action *runkit.Action, opts map[string]string) (map[string]string, erro
 						return huh.NewOption(str, str)
 					})...))
 		}
+		asked = append(asked, opt.Name)
 	}
 
 	if len(fields) == 0 {
@@ -90,8 +92,8 @@ func Ask(action *runkit.Action, opts map[string]string) (map[string]string, erro
 		return nil, err
 	}
 
-	for _, opt := range action.Options {
-		opts[opt.Name] = form.GetString(opt.Name)
+	for _, optName := range asked {
+		opts[optName] = form.GetString(optName)
 	}
 
 	return opts, nil
