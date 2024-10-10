@@ -206,8 +206,10 @@ func run(ctx context.Context, out io.Writer, src string, rk *runkit.RunKit, acti
 
 	_, _ = fmt.Fprintln(out, tui.Markdown(fmt.Sprintf(`
 > **Running the following command:**
->
->     %s
+
+    %s
+
+---
 `, runnable.Command)))
 
 	return runnable.Run(ctx)
