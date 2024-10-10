@@ -6,6 +6,8 @@ layout: default
 
 > Finally good defaults to distribute docker images!
 
+_This was initially created for the October 2024 [Docker](https://docker.com) Hackathon_
+
 ```text
            ⣀⣠⣤⢴⡶⡶⡶⣶⢶⣦⣤⣄⣀
        ⢀⣤⡈⠩⣉⣁⠁       ⠈⠉⠙⠻⢵⣤⡀
