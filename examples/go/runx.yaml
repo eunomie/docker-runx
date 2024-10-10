@@ -24,9 +24,11 @@ actions:
     dockerfile: Dockerfile
     opts:
       - name: bin_name
+        desc: The name of the binary that also defines the build target as cmd/<bin_name>
         prompt: Please enter then name of the binary
         required: true
       - name: platforms
+        desc: "Comma separated list of platforms to build for (ex: linux/amd64,linux/arm64)"
         prompt: "Please enter the comma separated list of platforms (ex: linux/amd64,linux/arm64)"
     cmd: >
       -f {{.Dockerfile}}
