@@ -32,16 +32,14 @@ tasks:
   go:bin:
     cmds:
       - |
-        go build \
-          -o dist/{{.BIN_NAME}} \
-          -ldflags="-w -s \
-            -X '{{.PKG_NAME}}/internal/constants.Version={{.VERSION}}'" \
-          ./cmd/{{.BIN_NAME}}
-    env:
-      CGO_ENABLED: 0
-    vars:
-      VERSION:
-        sh: git describe --tags | cut -c 2-
+        docker buildx build \
+          --build-arg BIN_NAME={{.BIN_NAME}} \
+          --build-arg NO_ARCHIVE=true \
+          -f Dockerfile \
+          --platform local \
+          --target export-bin \
+          -o type=local,dest=dist,platform-split=false \
+          .
 
   go:bin:all:
     cmds:

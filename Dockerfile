@@ -30,6 +30,7 @@ FROM build AS binary
 ARG TARGETOS
 ARG TARGETARCH
 ARG BIN_NAME
+ARG NO_ARCHIVE
 ENV CGO_ENABLED=0
 RUN --mount=type=cache,target=/root/.cache \
     --mount=type=cache,target=/go/pkg/mod \
@@ -41,19 +42,20 @@ RUN --mount=type=cache,target=/root/.cache \
         -X $PKG_NAME/internal/constants.Version=$GIT_VERSION" \
       ./cmd/${BIN_NAME} && \
     xx-verify dist/${BIN_NAME} && \
-# on windows add the .exe extension and zip the binary \
-    if [ "${TARGETOS}" = "windows" ]; then \
-      mv dist/${BIN_NAME} dist/${BIN_NAME}.exe && \
-      cd dist && zip ${BIN_NAME}-${TARGETOS}-${TARGETARCH}.zip ${BIN_NAME}.exe; \
-    fi && \
-# if target os is not windows, tar and gzip the binary \
-    if [ "${TARGETOS}" != "windows" ]; then \
-      tar -C dist -czf dist/${BIN_NAME}-${TARGETOS}-${TARGETARCH}.tar.gz ${BIN_NAME}; \
+    if [ -z "${NO_ARCHIVE}" ]; then \
+      # on windows add the .exe extension and zip the binary \
+      if [ "${TARGETOS}" = "windows" ]; then \
+        mv dist/${BIN_NAME} dist/${BIN_NAME}.exe && \
+        (cd dist && zip ${BIN_NAME}-${TARGETOS}-${TARGETARCH}.zip ${BIN_NAME}.exe && rm -f ${BIN_NAME}.exe); \
+      fi && \
+      # if target os is not windows, tar and gzip the binary \
+      if [ "${TARGETOS}" != "windows" ]; then \
+        tar -C dist -czf dist/${BIN_NAME}-${TARGETOS}-${TARGETARCH}.tar.gz ${BIN_NAME} && rm -f dist/${BIN_NAME}; \
+      fi \
     fi
 
 FROM scratch AS export-bin
 ARG BIN_NAME
 ARG TARGETOS
 ARG TARGETARCH
-COPY --from=binary /go/src/dist/*.zip /
-COPY --from=binary /go/src/dist/*.tar.gz /
+COPY --from=binary /go/src/dist/* /
