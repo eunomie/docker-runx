@@ -14,7 +14,6 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/eunomie/docker-runx/internal/registry"
-	"github.com/eunomie/docker-runx/internal/runkit"
 )
 
 type Files struct {
@@ -60,7 +59,7 @@ func Get(ctx context.Context, src string) (*RunKit, error) {
 	found := false
 	manifests, _ := index.IndexManifest()
 	for _, m := range manifests.Manifests {
-		if a, ok := m.Annotations[runkit.RunxAnnotation]; ok && a == runkit.RunxManifestType {
+		if a, ok := m.Annotations[RunxAnnotation]; ok && a == RunxManifestType {
 			manifest = m
 			found = true
 			break
@@ -85,7 +84,7 @@ func Get(ctx context.Context, src string) (*RunKit, error) {
 		if err != nil {
 			continue
 		}
-		if mt == runkit.RunxConfigType {
+		if mt == RunxConfigType {
 			dataReader, err := l.Uncompressed()
 			if err != nil {
 				return nil, fmt.Errorf("could not read runx config %s: %w", src, err)
@@ -94,7 +93,7 @@ func Get(ctx context.Context, src string) (*RunKit, error) {
 			if err != nil {
 				return nil, fmt.Errorf("could not read runx config %s: %w", src, err)
 			}
-		} else if mt == runkit.RunxDocType {
+		} else if mt == RunxDocType {
 			dataReader, err := l.Uncompressed()
 			if err != nil {
 				return nil, fmt.Errorf("could not read runx config %s: %w", src, err)

@@ -13,7 +13,6 @@ import (
 	"github.com/google/go-containerregistry/pkg/v1/types"
 
 	"github.com/eunomie/docker-runx/internal/registry"
-	"github.com/eunomie/docker-runx/internal/runkit"
 )
 
 func Decorate(ctx context.Context, src, dest string, runxConfig, runxDoc []byte) error {
@@ -23,7 +22,7 @@ func Decorate(ctx context.Context, src, dest string, runxConfig, runxDoc []byte)
 		remoteOpts               = registry.WithOptions(ctx, nil)
 		ref, _                   = name.ParseReference(src)
 		destRef, _               = name.ParseReference(dest)
-		runxImage, runxDesc, err = runkit.Image(runxConfig, runxDoc)
+		runxImage, runxDesc, err = Image(runxConfig, runxDoc)
 	)
 
 	if err != nil {
@@ -78,7 +77,7 @@ func Decorate(ctx context.Context, src, dest string, runxConfig, runxDoc []byte)
 			// remove existing runx manifest
 			manifests, _ := index.IndexManifest()
 			for _, manifest := range manifests.Manifests {
-				if _, ok := manifest.Annotations[runkit.RunxManifestType]; ok {
+				if _, ok := manifest.Annotations[RunxManifestType]; ok {
 					index = mutate.RemoveManifests(index, match.Digests(manifest.Digest))
 				}
 			}
