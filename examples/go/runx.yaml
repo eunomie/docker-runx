@@ -27,6 +27,23 @@ actions:
         desc: The name of the binary that also defines the build target as cmd/<bin_name>
         prompt: Please enter then name of the binary
         required: true
+    cmd: >
+      -f {{.Dockerfile}}
+      --build-arg BIN_NAME={{opt "bin_name"}}
+      --build-arg NO_ARCHIVE=true
+      --platform local
+      --target export-bin
+      --output type=local,dest=dist/
+      .
+
+  - id: build:all
+    type: build
+    dockerfile: Dockerfile
+    opts:
+      - name: bin_name
+        desc: The name of the binary that also defines the build target as cmd/<bin_name>
+        prompt: Please enter then name of the binary
+        required: true
       - name: platforms
         desc: "Comma separated list of platforms to build for (ex: linux/amd64,linux/arm64)"
         prompt: "Please enter the comma separated list of platforms (ex: linux/amd64,linux/arm64)"
@@ -35,7 +52,7 @@ actions:
       --build-arg BIN_NAME={{opt "bin_name"}}
       {{if opt "platforms"}}--platform {{opt "platforms"}}{{end}}
       --target export-bin
-      --output type=local,dest=dist/
+      --output type=local,dest=dist/,platform-split=false
       .
 
   - id: mocks

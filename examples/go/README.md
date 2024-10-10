@@ -12,7 +12,7 @@ Go packages and cache are shared with `golangci-lint` to speed up the process.
 
 ### Build
 
-`build` action will build the codebase using `docker buildx` and output as (multi-platform) binaries.
+`build` action will build the codebase using `docker buildx` and output as binary.
 
 By convention if the binary name is `tool`, it will try to build `cmd/tool/` and the output will be inside `dist` directory.
 
@@ -26,10 +26,28 @@ images:
       build:
         opts:
           bin_name: <bin name>
-          platforms: <platforms to build against>
 ```
 
 That way you will be able to run `docker runx build` without to specify anything else.
+
+### Multi platform builds
+
+`build:all` allows to create multi-platform builds using `docker buildx`.
+
+The generated binaries will be compressed and stored in the `dist` directory.
+
+To make it more convenient, define the following in `.docker/runx.yaml`:
+
+```yaml
+ref: eunomie/go
+images:
+  eunomie/go:
+    actions:
+      build:all:
+        opts:
+          bin_name: <bin name>
+          platforms: <comma separated list of platforms>
+```
 
 ### Mocks
 
