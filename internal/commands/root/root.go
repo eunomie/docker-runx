@@ -271,7 +271,7 @@ func mdAction(rk *runkit.RunKit, action string) string {
 	if len(act.Options) > 0 {
 		s.WriteString("\n- " + plural("Option", len(act.Options)) + ":\n")
 		for _, opt := range act.Options {
-			s.WriteString("    - `" + opt.Name + "`" + sugar.If(opt.Description != "", " ("+opt.Description+")", "") + "\n")
+			s.WriteString("    - `" + opt.Name + "`" + sugar.If(opt.Description != "", ": "+opt.Description, "") + "\n")
 		}
 	}
 	if len(act.Shell) > 0 {
