@@ -20,6 +20,7 @@ import (
 	"github.com/eunomie/docker-runx/internal/constants"
 	"github.com/eunomie/docker-runx/internal/prompt"
 	"github.com/eunomie/docker-runx/internal/registry"
+	"github.com/eunomie/docker-runx/internal/sugar"
 	"github.com/eunomie/docker-runx/internal/tui"
 	"github.com/eunomie/docker-runx/runkit"
 )
@@ -97,7 +98,11 @@ func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 				}
 
 				if docs {
-					_, _ = fmt.Fprintln(dockerCli.Out(), tui.Markdown(rk.Readme+"\n---\n"+mdActions(rk)))
+					if action != "" {
+						_, _ = fmt.Fprintln(dockerCli.Out(), tui.Markdown(mdAction(rk, action)))
+					} else {
+						_, _ = fmt.Fprintln(dockerCli.Out(), tui.Markdown(rk.Readme+"\n---\n"+mdActions(rk)))
+					}
 					return nil
 				}
 
@@ -235,8 +240,58 @@ func commandName(isPlugin bool) string {
 	return name
 }
 
+func mdAction(rk *runkit.RunKit, action string) string {
+	var (
+		act   runkit.Action
+		found bool
+	)
+	for _, a := range rk.Config.Actions {
+		if a.ID == action {
+			found = true
+			act = a
+			break
+		}
+	}
+	if !found {
+		return fmt.Sprintf("> action %q not found\n\n%s", action, mdActions(rk))
+	}
+
+	s := strings.Builder{}
+	if act.Desc != "" {
+		s.WriteString(fmt.Sprintf("`%s`: %s\n", act.ID, act.Desc))
+	} else {
+		s.WriteString(fmt.Sprintf("`%s`\n", act.ID))
+	}
+	if len(act.Env) > 0 {
+		s.WriteString("\n- Environment " + plural("variable", len(act.Env)) + ":\n")
+		for _, env := range act.Env {
+			s.WriteString("    - `" + env + "`\n")
+		}
+	}
+	if len(act.Options) > 0 {
+		s.WriteString("\n- " + plural("Option", len(act.Options)) + ":\n")
+		for _, opt := range act.Options {
+			s.WriteString("    - `" + opt.Name + "`" + sugar.If(opt.Description != "", " ("+opt.Description+")", "") + "\n")
+		}
+	}
+	if len(act.Shell) > 0 {
+		s.WriteString("\n- Shell " + plural("command", len(act.Shell)) + ":\n")
+		for name, cmd := range act.Shell {
+			s.WriteString("    - `" + name + "`: `" + cmd + "`\n")
+		}
+	}
+	s.WriteString("\n- " + capitalizedTypes[act.Type] + " command:\n")
+	s.WriteString("```\n" + act.Command + "\n```\n")
+
+	return s.String()
+}
+
+var capitalizedTypes = map[runkit.ActionType]string{
+	runkit.ActionTypeRun:   "Run",
+	runkit.ActionTypeBuild: "Build",
+}
+
 func mdActions(rk *runkit.RunKit) string {
-	p := pluralize.NewClient()
 	s := strings.Builder{}
 	s.WriteString("# Available actions\n\n")
 	if len(rk.Config.Actions) == 0 {
@@ -248,15 +303,18 @@ func mdActions(rk *runkit.RunKit) string {
 			} else {
 				s.WriteString(fmt.Sprintf("  - `%s`\n", action.ID))
 			}
-			vars := "variable"
-			if len(action.Env) > 1 {
-				vars = p.Plural(vars)
-			}
-			if len(action.Env) > 0 {
-				s.WriteString("    - Environment " + vars + ": " + strings.Join(tui.BackQuoteItems(action.Env), ", ") + "\n")
-			}
 		}
+
+		s.WriteString("\n> Use `docker runx IMAGE ACTION --docs` to get more details about an action\n")
 	}
 
 	return s.String()
+}
+
+func plural(str string, n int) string {
+	p := pluralize.NewClient()
+	if n > 1 {
+		return p.Plural(str)
+	}
+	return str
 }

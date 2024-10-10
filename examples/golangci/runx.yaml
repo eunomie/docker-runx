@@ -29,6 +29,7 @@ actions:
       gocache: go env GOCACHE
     opts:
       - name: config
+        desc: The path to the golangci-lint config file
         prompt: Please enter the path to the config file
         required: true
     cmd: >
