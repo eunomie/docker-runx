@@ -1,25 +1,4 @@
-default: hello
 actions:
-  - id: hello:user
-    desc: Say hello to the current user
-    type: run
-    env:
-      - USER
-    shell:
-      uname: uname
-    cmd: --rm {{.Ref}} echo hello {{env "USER"}} from {{sh "uname"}}
-
-  - id: hello
-    desc: Say hello!
-    type: run
-    opts:
-      - name: name
-        desc: User's name
-        prompt: Please enter your name
-        required: true
-    cmd: >
-      --rm {{.Ref}} echo hello {{opt "name"}}
-
   - id: lint
     desc: Run golangci-lint
     type: run
@@ -55,3 +34,20 @@ actions:
       --target export-bin
       --output type=local,dest=dist/
       .
+
+  - id: mocks
+    type: run
+    shell:
+      pwd: pwd
+      gopath: go env GOPATH
+      gocache: go env GOCACHE
+    cmd: >
+      --rm
+      -v {{sh "pwd"}}:/app
+      -v {{sh "gopath"}}/pkg:/go/pkg
+      -v {{sh "gocache"}}:/cache/go
+      -e GOCACHE=/cache/go
+      -v {{sh "pwd"}}:/src
+      -w /src
+      docker/mockery:v2.46
+      --keeptree -r --all

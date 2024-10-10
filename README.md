@@ -71,6 +71,8 @@ Or run the `hello` action:
 $ docker runx NAMESPACE/REPOSITORY hello
 ```
 
+See more examples in the [examples](/examples) directory.
+
 ## CLI Plugin Installation
 
 ### Manual Installation

@@ -1,0 +1,44 @@
+default: lint
+actions:
+  - id: lint
+    desc: Run golangci-lint
+    type: run
+    shell:
+      pwd: pwd
+      gopath: go env GOPATH
+      gocache: go env GOCACHE
+    cmd: >
+      --rm
+        -v {{sh "pwd"}}:/app
+        -v {{sh "gopath"}}/pkg:/go/pkg
+        -v {{sh "gocache"}}:/cache/go
+        -e GOFLAGS=-buildvcs=false
+        -e GOCACHE=/cache/go
+        -e GOLANGCI_LINT_CACHE=/cache/go
+        -w /app
+        {{.Ref}}
+        golangci-lint run -v --timeout 5m
+
+  - id: with-config
+    desc: Run golangci-lint with a specific config file
+    type: run
+    shell:
+      pwd: pwd
+      gopath: go env GOPATH
+      gocache: go env GOCACHE
+    opts:
+      - name: config
+        prompt: Please enter the path to the config file
+        required: true
+    cmd: >
+      --rm
+        -v {{sh "pwd"}}:/app
+        -v {{sh "gopath"}}/pkg:/go/pkg
+        -v {{sh "gocache"}}:/cache/go
+        --mount type=bind,source={{sh "pwd"}}/{{opt "config"}},target=/.golangci.yml
+        -e GOFLAGS=-buildvcs=false
+        -e GOCACHE=/cache/go
+        -e GOLANGCI_LINT_CACHE=/cache/go
+        -w /app
+        {{.Ref}}
+        golangci-lint run -v -c /.golangci.yml --timeout 5m

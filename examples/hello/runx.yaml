@@ -1,0 +1,20 @@
+actions:
+  - id: user
+    desc: Say hello to the current user
+    type: run
+    env:
+      - USER
+    shell:
+      uname: uname
+    cmd: --rm {{.Ref}} echo hello {{env "USER"}}
+
+  - id: ask
+    desc: Say hello!
+    type: run
+    opts:
+      - name: name
+        desc: User's name
+        prompt: Please enter your name
+        required: true
+    cmd: >
+      --rm {{.Ref}} echo hello {{opt "name"}}
