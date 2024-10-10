@@ -8,15 +8,16 @@ actions:
       gocache: go env GOCACHE
     cmd: >
       --rm
-        -v {{sh "pwd"}}:/app
-        -v {{sh "gopath"}}/pkg:/go/pkg
-        -v {{sh "gocache"}}:/cache/go
-        -e GOFLAGS=-buildvcs=false
-        -e GOCACHE=/cache/go
-        -e GOLANGCI_LINT_CACHE=/cache/go
-        -w /app
-        golangci/golangci-lint
-        golangci-lint run -v --timeout 5m
+      {{if .IsTTY}}-t{{end}}
+      -v {{sh "pwd"}}:/app
+      -v {{sh "gopath"}}/pkg:/go/pkg
+      -v {{sh "gocache"}}:/cache/go
+      -e GOFLAGS=-buildvcs=false
+      -e GOCACHE=/cache/go
+      -e GOLANGCI_LINT_CACHE=/cache/go
+      -w /app
+      {{.Ref}}
+      golangci-lint run --timeout 5m
 
   - id: build
     type: build
