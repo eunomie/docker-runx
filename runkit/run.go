@@ -10,6 +10,8 @@ import (
 	"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
+
+	"github.com/eunomie/docker-runx/internal/tui"
 )
 
 type (
@@ -27,6 +29,7 @@ type (
 		Env        map[string]string
 		Opts       map[string]string
 		Dockerfile string
+		IsTTY      bool
 	}
 )
 
@@ -57,8 +60,9 @@ func (action *Action) GetRunnable(ref string) (*Runnable, func(), error) {
 		Action:  action,
 		command: rootCommand,
 		data: TemplateData{
-			Ref: ref,
-			Env: map[string]string{},
+			Ref:   ref,
+			Env:   map[string]string{},
+			IsTTY: tui.IsATTY(os.Stdin.Fd()),
 		},
 	}
 
