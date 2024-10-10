@@ -91,6 +91,11 @@ func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 					return err
 				}
 
+				if action == "" && !list && !docs && len(rk.Config.Actions) == 0 {
+					_, _ = fmt.Fprintln(dockerCli.Out(), tui.Markdown(rk.Readme))
+					return nil
+				}
+
 				if docs {
 					_, _ = fmt.Fprintln(dockerCli.Out(), tui.Markdown(rk.Readme+"\n---\n"+mdActions(rk)))
 					return nil
@@ -99,7 +104,7 @@ func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 				action = selectAction(action, lc.Images[src], rk.Config.Default)
 
 				if list || action == "" {
-					if tui.IsATTY(dockerCli.In().FD()) {
+					if tui.IsATTY(dockerCli.In().FD()) && len(rk.Config.Actions) > 0 {
 						selectedAction := prompt.SelectAction(rk.Config.Actions)
 						if selectedAction != "" {
 							return run(cmd.Context(), dockerCli.Err(), src, rk, selectedAction)
@@ -232,18 +237,22 @@ func mdActions(rk *runkit.RunKit) string {
 	p := pluralize.NewClient()
 	s := strings.Builder{}
 	s.WriteString("# Available actions\n\n")
-	for _, action := range rk.Config.Actions {
-		if action.Desc != "" {
-			s.WriteString(fmt.Sprintf("  - `%s`: %s\n", action.ID, action.Desc))
-		} else {
-			s.WriteString(fmt.Sprintf("  - `%s`\n", action.ID))
-		}
-		vars := "variable"
-		if len(action.Env) > 1 {
-			vars = p.Plural(vars)
-		}
-		if len(action.Env) > 0 {
-			s.WriteString("    - Environment " + vars + ": " + strings.Join(tui.BackQuoteItems(action.Env), ", ") + "\n")
+	if len(rk.Config.Actions) == 0 {
+		s.WriteString("> No available action\n")
+	} else {
+		for _, action := range rk.Config.Actions {
+			if action.Desc != "" {
+				s.WriteString(fmt.Sprintf("  - `%s`: %s\n", action.ID, action.Desc))
+			} else {
+				s.WriteString(fmt.Sprintf("  - `%s`\n", action.ID))
+			}
+			vars := "variable"
+			if len(action.Env) > 1 {
+				vars = p.Plural(vars)
+			}
+			if len(action.Env) > 0 {
+				s.WriteString("    - Environment " + vars + ": " + strings.Join(tui.BackQuoteItems(action.Env), ", ") + "\n")
+			}
 		}
 	}
 
