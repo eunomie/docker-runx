@@ -34,6 +34,12 @@ jobs:
       - name: Binaries
         run: task go:bin:all
 
+      - name: Checksums
+        run: |
+          cd dist
+          shasum -a 256 * > docker-runx-checksums.txt
+          cd ..
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
