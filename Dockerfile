@@ -34,10 +34,11 @@ ENV CGO_ENABLED=0
 RUN --mount=type=cache,target=/root/.cache \
     --mount=type=cache,target=/go/pkg/mod \
     GIT_VERSION=$(git describe --tags | cut -c 2-) && \
+    PKG_NAME=$(go mod graph | head -n 1 | cut -d ' ' -f 1) && \
     xx-go build \
       -o dist/${BIN_NAME} \
       -ldflags="-w -s \
-        -X {{.PKG_NAME}}/internal/constants.Version=$GIT_VERSION" \
+        -X $PKG_NAME/internal/constants.Version=$GIT_VERSION" \
       ./cmd/${BIN_NAME} && \
     xx-verify dist/${BIN_NAME} && \
 # on windows add the .exe extension and zip the binary \
