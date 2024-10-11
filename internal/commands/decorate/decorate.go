@@ -12,6 +12,7 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/docker/cli/cli/command"
+	"github.com/eunomie/docker-runx/internal/tui"
 	"github.com/eunomie/docker-runx/runkit"
 )
 
@@ -95,17 +96,22 @@ func NewCmd(dockerCli command.Cli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			image := args[0]
 
-			err = spinner.New().
-				Type(spinner.Globe).
-				Title(" Decorating and pushing...").
-				Action(func() {
-					err = runkit.Decorate(cmd.Context(), image, tag, config, readme)
-					if err != nil {
-						_, _ = fmt.Fprintln(dockerCli.Err(), err)
-						os.Exit(1)
-					}
-				}).
-				Run()
+			if tui.IsATTY(dockerCli.In().FD()) {
+				err = spinner.New().
+					Type(spinner.Globe).
+					Title(" Decorating and pushing...").
+					Action(func() {
+						err = runkit.Decorate(cmd.Context(), image, tag, config, readme)
+						if err != nil {
+							_, _ = fmt.Fprintln(dockerCli.Err(), err)
+							os.Exit(1)
+						}
+					}).
+					Run()
+			} else {
+				err = runkit.Decorate(cmd.Context(), image, tag, config, readme)
+			}
+
 			if err != nil {
 				return err
 			}

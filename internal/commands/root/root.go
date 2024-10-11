@@ -78,16 +78,20 @@ func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 					rk  *runkit.RunKit
 				)
 
-				err = spinner.New().
-					Type(spinner.Globe).
-					Title(" Fetching runx details...").
-					Action(func() {
-						rk, err = runkit.Get(cmd.Context(), src)
-						if err != nil {
-							_, _ = fmt.Fprintln(dockerCli.Err(), err)
-							os.Exit(1)
-						}
-					}).Run()
+				if tui.IsATTY(dockerCli.In().FD()) {
+					err = spinner.New().
+						Type(spinner.Globe).
+						Title(" Fetching runx details...").
+						Action(func() {
+							rk, err = runkit.Get(cmd.Context(), src)
+							if err != nil {
+								_, _ = fmt.Fprintln(dockerCli.Err(), err)
+								os.Exit(1)
+							}
+						}).Run()
+				} else {
+					rk, err = runkit.Get(cmd.Context(), src)
+				}
 				if err != nil {
 					return err
 				}
