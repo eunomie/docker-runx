@@ -273,7 +273,7 @@ The `runx` image manifest will reference at max two layers, one for the `runx.ya
 
 ## CLI Plugin Installation
 
-### Script Installation (macOS and Linux)
+### Script Installation (macOS and Linux/WSL)
 
 Install the `docker-runx` CLI plugin using the following command:
 

@@ -34,7 +34,7 @@ _This was initially created for the October 2024 [Docker](https://docker.com) Ha
   * [Local Override](#local-override)
 * [Implementation Details](#implementation-details)
 * [CLI Plugin Installation](#cli-plugin-installation)
-  * [Script Installation (macOS and Linux)](#script-installation-macos-and-linux)
+  * [Script Installation (macOS and Linux/WSL)](#script-installation-macos-and-linuxwsl)
   * [Manual Installation](#manual-installation)
 
 ## Main Usage
@@ -269,7 +269,7 @@ The `runx` image manifest will reference at max two layers, one for the `runx.ya
 
 ## CLI Plugin Installation
 
-### Script Installation (macOS and Linux)
+### Script Installation (macOS and Linux/WSL)
 
 Install the `docker-runx` CLI plugin using the following command:
 
