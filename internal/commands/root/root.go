@@ -173,11 +173,18 @@ func getValuesLocal(src, action string) map[string]string {
 	if !ok {
 		return localOpts
 	}
-	act, ok := img.Actions[action]
-	if !ok {
-		return localOpts
+
+	if img.AllActions.Opts != nil {
+		localOpts = img.AllActions.Opts
 	}
-	return act.Opts
+
+	act, ok := img.Actions[action]
+	if ok {
+		for k, v := range act.Opts {
+			localOpts[k] = v
+		}
+	}
+	return localOpts
 }
 
 func run(ctx context.Context, out io.Writer, src string, rk *runkit.RunKit, action string) error {

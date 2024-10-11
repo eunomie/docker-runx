@@ -30,7 +30,7 @@ type (
 	Opt struct {
 		Name        string   `yaml:"name" json:"name"`
 		Description string   `yaml:"desc" json:"desc,omitempty"`
-		NoPrompt    bool     `yaml:"no-prompt,omitempty" json:"no_prompt,omitempty"`
+		NoPrompt    bool     `yaml:"no-prompt,omitempty" json:"no-prompt,omitempty"`
 		Prompt      string   `yaml:"prompt,omitempty" json:"prompt,omitempty"`
 		Required    bool     `yaml:"required,omitempty" json:"required,omitempty"`
 		Values      []string `yaml:"values,omitempty" json:"values,omitempty"`
@@ -44,8 +44,9 @@ type (
 	}
 
 	ConfigImage struct {
-		Default string                  `yaml:"default,omitempty" json:"default,omitempty"`
-		Actions map[string]ConfigAction `yaml:"actions,omitempty" json:"actions,omitempty"`
+		Default    string                  `yaml:"default,omitempty" json:"default,omitempty"`
+		AllActions ConfigAction            `yaml:"all-actions,omitempty" json:"all-actions,omitempty"`
+		Actions    map[string]ConfigAction `yaml:"actions,omitempty" json:"actions,omitempty"`
 	}
 
 	ConfigAction struct {

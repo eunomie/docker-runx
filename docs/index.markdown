@@ -163,6 +163,7 @@ actions:
       - name: OPTION_NAME # Name of the option. Also used in the local override or with `--opt` flag.
         desc: DESCRIPTION # Description, rendered in the documentation of the action.
         prompt: PROMPT # A specific prompt to ask the user for the value.
+        no-prompt: true|false # If set to true, the option will not be prompted to the user.
         required: true|false # If required, an empty value will not be accepted.
         values: # A list of possible values for the option. If set, a select will be displayed to the user.
           - VALUE
@@ -187,6 +188,8 @@ actions:
 A local file `.docker/runx.yaml` can be used to override the actions defined in the image manifest.
 This is useful to configure some actions for a specific project for instance.
 
+`docker runx` will look for this file in the current directory and in all the parent directories. The different files will be merged together, the closer to the current directory will have the priority.
+
 ```yaml
 # Optional.
 # It allows to define a default reference to an image if none is provided by the user.
@@ -201,6 +204,12 @@ images:
     # Define a default action to run if none is provided by the user.
     # This overrides the `default` action in the image `runx.yaml` configuration.
     default: ACTION_ID
+    # Optional.
+    # Allow to define common options for all the actions of the image.
+    all-actions:
+      opts:
+        # Override the value of an option.
+        OPTION_NAME: OPTION_VALUE
     # Optional.
     actions:
       # Specify the action to override.
