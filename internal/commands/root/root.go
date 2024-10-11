@@ -258,7 +258,7 @@ func mdAction(rk *runkit.RunKit, action string) string {
 
 	s := strings.Builder{}
 	if act.Desc != "" {
-		s.WriteString(fmt.Sprintf("`%s`: %s\n", act.ID, act.Desc))
+		s.WriteString(fmt.Sprintf("`%s`%s: %s\n", act.ID, sugar.If(act.IsDefault(), " (default)", ""), act.Desc))
 	} else {
 		s.WriteString(fmt.Sprintf("`%s`\n", act.ID))
 	}
@@ -299,7 +299,7 @@ func mdActions(rk *runkit.RunKit) string {
 	} else {
 		for _, action := range rk.Config.Actions {
 			if action.Desc != "" {
-				s.WriteString(fmt.Sprintf("  - `%s`: %s\n", action.ID, action.Desc))
+				s.WriteString(fmt.Sprintf("  - `%s`%s: %s\n", action.ID, sugar.If(action.IsDefault(), "(default)", ""), action.Desc))
 			} else {
 				s.WriteString(fmt.Sprintf("  - `%s`\n", action.ID))
 			}

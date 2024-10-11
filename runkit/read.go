@@ -138,6 +138,11 @@ func Get(ctx context.Context, src string) (*RunKit, error) {
 					a.DockerfileContent = c
 				}
 			}
+
+			if config.Default == a.ID {
+				a.isDefault = true
+			}
+
 			actions = append(actions, a)
 		}
 		config.Actions = actions

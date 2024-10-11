@@ -15,6 +15,7 @@ type (
 	}
 
 	Action struct {
+		isDefault         bool
 		ID                string            `yaml:"id" json:"id"`
 		Desc              string            `yaml:"desc,omitempty" json:"desc,omitempty"`
 		Type              ActionType        `yaml:"type" json:"type"`
@@ -55,3 +56,7 @@ const (
 	ActionTypeRun   ActionType = "run"
 	ActionTypeBuild ActionType = "build"
 )
+
+func (a *Action) IsDefault() bool {
+	return a.isDefault
+}
