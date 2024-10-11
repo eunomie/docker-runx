@@ -102,6 +102,15 @@ func (r *Runnable) cleanup() func() {
 }
 
 func (r *Runnable) compute() error {
+	shells := map[string]string{}
+	for k, v := range r.Action.Shell {
+		out, err := sh(context.Background(), v)
+		if err != nil {
+			return fmt.Errorf("could not run shell script %s: %w", k, err)
+		}
+		shells[k] = out
+	}
+
 	tmpl, err := template.New("runx").Funcs(template.FuncMap{
 		"env": func(envName string) string {
 			return r.data.Env[envName]
@@ -110,11 +119,11 @@ func (r *Runnable) compute() error {
 			return r.data.Opts[optName]
 		},
 		"sh": func(cmdName string) (string, error) {
-			cmd, ok := r.Action.Shell[cmdName]
+			v, ok := shells[cmdName]
 			if !ok {
 				return "", fmt.Errorf("shell command %q not found", cmdName)
 			}
-			return sh(context.Background(), cmd)
+			return v, nil
 		},
 	}).Parse(r.Action.Command)
 	if err != nil {
