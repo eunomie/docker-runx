@@ -63,6 +63,9 @@ func Ask(action *runkit.Action, opts map[string]string) (map[string]string, erro
 		if _, ok := opts[opt.Name]; ok {
 			continue
 		}
+		if opt.NoPrompt {
+			continue
+		}
 		opt := opt
 		if len(opt.Values) == 0 {
 			fields = append(fields,

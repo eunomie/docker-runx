@@ -132,6 +132,12 @@ func (r *Runnable) compute() error {
 }
 
 func (r *Runnable) SetOptionValues(opts map[string]string) error {
+	for _, opt := range r.Action.Options {
+		if opt.Required && opts[opt.Name] == "" {
+			return fmt.Errorf("option %q is required", opt.Name)
+		}
+	}
+
 	r.data.Opts = opts
 
 	if err := r.compute(); err != nil {

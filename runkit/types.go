@@ -30,6 +30,7 @@ type (
 	Opt struct {
 		Name        string   `yaml:"name" json:"name"`
 		Description string   `yaml:"desc" json:"desc,omitempty"`
+		NoPrompt    bool     `yaml:"no-prompt,omitempty" json:"no_prompt,omitempty"`
 		Prompt      string   `yaml:"prompt,omitempty" json:"prompt,omitempty"`
 		Required    bool     `yaml:"required,omitempty" json:"required,omitempty"`
 		Values      []string `yaml:"values,omitempty" json:"values,omitempty"`

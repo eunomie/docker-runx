@@ -166,19 +166,16 @@ func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 }
 
 func getValuesLocal(src, action string) map[string]string {
-	opts := make(map[string]string)
-	if ask {
-		return opts
-	}
+	localOpts := make(map[string]string)
 
 	lc := runkit.GetLocalConfig()
 	img, ok := lc.Images[src]
 	if !ok {
-		return opts
+		return localOpts
 	}
 	act, ok := img.Actions[action]
 	if !ok {
-		return opts
+		return localOpts
 	}
 	return act.Opts
 }
@@ -190,13 +187,17 @@ func run(ctx context.Context, out io.Writer, src string, rk *runkit.RunKit, acti
 		return err
 	}
 
-	localOpts := getValuesLocal(src, action)
+	localOpts := map[string]string{}
 
-	for _, opt := range opts {
-		if key, value, ok := strings.Cut(opt, "="); ok {
-			localOpts[key] = value
-		} else {
-			return fmt.Errorf("invalid option value %s", opt)
+	if !ask {
+		localOpts = getValuesLocal(src, action)
+
+		for _, opt := range opts {
+			if key, value, ok := strings.Cut(opt, "="); ok {
+				localOpts[key] = value
+			} else {
+				return fmt.Errorf("invalid option value %s", opt)
+			}
 		}
 	}
 
