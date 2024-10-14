@@ -43,6 +43,7 @@ func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 					src    string
 					action string
 					lc     = runkit.GetLocalConfig()
+					cache  = runkit.NewLocalCache(dockerCli)
 				)
 
 				switch len(args) {
@@ -83,14 +84,14 @@ func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 						Type(spinner.Globe).
 						Title(" Fetching runx details...").
 						Action(func() {
-							rk, err = runkit.Get(cmd.Context(), src)
+							rk, err = runkit.Get(cmd.Context(), cache, src)
 							if err != nil {
 								_, _ = fmt.Fprintln(dockerCli.Err(), err)
 								os.Exit(1)
 							}
 						}).Run()
 				} else {
-					rk, err = runkit.Get(cmd.Context(), src)
+					rk, err = runkit.Get(cmd.Context(), cache, src)
 				}
 				if err != nil {
 					return err
