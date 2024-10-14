@@ -112,7 +112,7 @@ func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 					return nil
 				}
 
-				action = selectAction(action, lc.Images[src], rk.Config.Default)
+				action = selectAction(action, src, rk.Config.Default)
 
 				if list || action == "" {
 					if tui.IsATTY(dockerCli.In().FD()) && len(rk.Config.Actions) > 0 {
@@ -176,7 +176,7 @@ func getValuesLocal(src, action string) map[string]string {
 	localOpts := make(map[string]string)
 
 	lc := runkit.GetLocalConfig()
-	img, ok := lc.Images[src]
+	img, ok := lc.Image(src)
 	if !ok {
 		return localOpts
 	}
@@ -235,12 +235,12 @@ func run(ctx context.Context, out io.Writer, src string, rk *runkit.RunKit, acti
 	return runnable.Run(ctx)
 }
 
-func selectAction(action string, conf runkit.ConfigImage, defaultAction string) string {
+func selectAction(action, src, defaultAction string) string {
 	if action != "" {
 		return action
 	}
 
-	if conf.Default != "" {
+	if conf, ok := runkit.GetLocalConfig().Image(src); ok && conf.Default != "" {
 		return conf.Default
 	}
 
