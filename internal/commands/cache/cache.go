@@ -15,7 +15,7 @@ func NewCmd(dockerCli command.Cli) *cobra.Command {
 	}
 	cmd.AddCommand(
 		dfNewCmd(dockerCli),
-		//pruneNewCmd(dockerCli),
+		pruneNewCmd(dockerCli),
 	)
 
 	return cmd

@@ -122,6 +122,10 @@ func (c *LocalCache) ListCache() (string, []CacheEntry, int64, error) {
 	return c.cacheDir, entries, totalSize, nil
 }
 
+func (c *LocalCache) Erase() error {
+	return os.RemoveAll(c.cacheDir)
+}
+
 func dirSize(path string) (int64, error) {
 	var size int64
 	err := filepath.Walk(path, func(path string, info fs.FileInfo, err error) error {
