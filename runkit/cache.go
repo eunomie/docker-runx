@@ -1,6 +1,8 @@
 package runkit
 
 import (
+	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
 
@@ -15,9 +17,16 @@ const (
 
 var subCacheDir = filepath.Join(constants.SubCommandName, "cache", "sha256")
 
-type LocalCache struct {
-	cacheDir string
-}
+type (
+	LocalCache struct {
+		cacheDir string
+	}
+
+	CacheEntry struct {
+		Digest string
+		Size   int64
+	}
+)
 
 func NewLocalCache(cli command.Cli) *LocalCache {
 	rootDir := filepath.Dir(cli.ConfigFile().Filename)
@@ -80,4 +89,52 @@ func (c *LocalCache) Set(digest string, runxConfig, runxDoc []byte) error {
 		}
 	}
 	return nil
+}
+
+func (c *LocalCache) ListCache() (string, []CacheEntry, int64, error) {
+	totalSize := int64(0)
+	var entries []CacheEntry
+	err := filepath.WalkDir(c.cacheDir, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() && path != c.cacheDir {
+			s, e := dirSize(path)
+			if e != nil {
+				return e
+			}
+			totalSize += s
+			entries = append(entries, CacheEntry{
+				Digest: filepath.Base(path),
+				Size:   s,
+			})
+			return fs.SkipDir
+		}
+		return nil
+	})
+	if err != nil {
+		if errors.Is(err, fs.ErrNotExist) {
+			return "", nil, 0, nil
+		}
+		return "", nil, 0, err
+	}
+	return c.cacheDir, entries, totalSize, nil
+}
+
+func (c *LocalCache) Erase() error {
+	return os.RemoveAll(c.cacheDir)
+}
+
+func dirSize(path string) (int64, error) {
+	var size int64
+	err := filepath.Walk(path, func(path string, info fs.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() {
+			size += info.Size()
+		}
+		return nil
+	})
+	return size, err
 }

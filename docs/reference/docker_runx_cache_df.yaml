@@ -1,0 +1,13 @@
+command: docker runx cache df
+short: Show disk usage
+long: Show disk usage
+usage: docker runx cache df
+pname: docker runx cache
+plink: docker_runx_cache.yaml
+deprecated: false
+hidden: false
+experimental: false
+experimentalcli: false
+kubernetes: false
+swarm: false
+

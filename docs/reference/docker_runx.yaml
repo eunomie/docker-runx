@@ -5,10 +5,12 @@ usage: docker runx [IMAGE] [ACTION]
 pname: docker
 plink: docker.yaml
 cname:
+    - docker runx cache
     - docker runx decorate
     - docker runx help
     - docker runx version
 clink:
+    - docker_runx_cache.yaml
     - docker_runx_decorate.yaml
     - docker_runx_help.yaml
     - docker_runx_version.yaml
