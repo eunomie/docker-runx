@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/docker/cli/cli/command"
 	"github.com/dustin/go-humanize"
-	"github.com/eunomie/docker-runx/runkit"
 	"github.com/spf13/cobra"
+
+	"github.com/docker/cli/cli/command"
+	"github.com/eunomie/docker-runx/runkit"
 )
 
 func dfNewCmd(dockerCli command.Cli) *cobra.Command {

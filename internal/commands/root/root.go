@@ -7,8 +7,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/eunomie/docker-runx/internal/commands/cache"
-
 	"github.com/charmbracelet/huh/spinner"
 	"github.com/gertd/go-pluralize"
 	"github.com/spf13/cobra"
@@ -16,6 +14,7 @@ import (
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli-plugins/plugin"
 	"github.com/docker/cli/cli/command"
+	"github.com/eunomie/docker-runx/internal/commands/cache"
 	"github.com/eunomie/docker-runx/internal/commands/decorate"
 	"github.com/eunomie/docker-runx/internal/commands/help"
 	"github.com/eunomie/docker-runx/internal/commands/version"

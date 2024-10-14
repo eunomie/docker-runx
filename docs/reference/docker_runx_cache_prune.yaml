@@ -1,0 +1,25 @@
+command: docker runx cache prune
+short: Remove all cache entries
+long: Remove all cache entries
+usage: docker runx cache prune
+pname: docker runx cache
+plink: docker_runx_cache.yaml
+options:
+    - option: force
+      shorthand: f
+      value_type: bool
+      default_value: "false"
+      description: Do not prompt for confirmation
+      deprecated: false
+      hidden: false
+      experimental: false
+      experimentalcli: false
+      kubernetes: false
+      swarm: false
+deprecated: false
+hidden: false
+experimental: false
+experimentalcli: false
+kubernetes: false
+swarm: false
+

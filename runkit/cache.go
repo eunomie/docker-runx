@@ -112,7 +112,6 @@ func (c *LocalCache) ListCache() (string, []CacheEntry, int64, error) {
 		}
 		return nil
 	})
-
 	if err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
 			return "", nil, 0, nil

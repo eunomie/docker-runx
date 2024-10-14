@@ -1,0 +1,18 @@
+command: docker runx cache
+short: Manage Docker RunX cache and temporary files
+long: Manage Docker RunX cache and temporary files
+pname: docker runx
+plink: docker_runx.yaml
+cname:
+    - docker runx cache df
+    - docker runx cache prune
+clink:
+    - docker_runx_cache_df.yaml
+    - docker_runx_cache_prune.yaml
+deprecated: false
+hidden: false
+experimental: false
+experimentalcli: false
+kubernetes: false
+swarm: false
+

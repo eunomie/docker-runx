@@ -3,9 +3,10 @@ package cache
 import (
 	"fmt"
 
+	"github.com/spf13/cobra"
+
 	"github.com/docker/cli/cli/command"
 	"github.com/eunomie/docker-runx/internal/constants"
-	"github.com/spf13/cobra"
 )
 
 func NewCmd(dockerCli command.Cli) *cobra.Command {

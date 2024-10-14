@@ -4,14 +4,13 @@ import (
 	"fmt"
 
 	"github.com/charmbracelet/huh"
+	"github.com/spf13/cobra"
+
 	"github.com/docker/cli/cli/command"
 	"github.com/eunomie/docker-runx/runkit"
-	"github.com/spf13/cobra"
 )
 
-var (
-	force bool
-)
+var force bool
 
 func pruneNewCmd(dockerCli command.Cli) *cobra.Command {
 	cmd := &cobra.Command{

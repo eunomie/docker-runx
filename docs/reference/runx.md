@@ -7,6 +7,7 @@ Docker Run, better
 
 | Name                           | Description                                      |
 |:-------------------------------|:-------------------------------------------------|
+| [`cache`](runx_cache.md)       | Manage Docker RunX cache and temporary files     |
 | [`decorate`](runx_decorate.md) | Decorate an image by attaching a runx manifest   |
 | [`help`](runx_help.md)         | Display information about the available commands |
 | [`version`](runx_version.md)   | Show Docker RunX version information             |
