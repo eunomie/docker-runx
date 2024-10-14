@@ -37,7 +37,7 @@ func NewLocalCache(cli command.Cli) *LocalCache {
 	}
 }
 
-func (c *LocalCache) Get(digest string) (*RunKit, error) {
+func (c *LocalCache) Get(digest, src string) (*RunKit, error) {
 	rk := &RunKit{
 		Files: make(map[string]string),
 	}
@@ -66,6 +66,7 @@ func (c *LocalCache) Get(digest string) (*RunKit, error) {
 	}
 
 	if found {
+		rk.src = src
 		return rk, nil
 	}
 	return nil, nil

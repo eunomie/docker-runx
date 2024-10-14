@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/google/go-containerregistry/pkg/name"
 	"gopkg.in/yaml.v2"
 )
 
@@ -20,7 +21,7 @@ var (
 	readOnce    = sync.Once{}
 )
 
-func GetLocalConfig() LocalConfig {
+func GetLocalConfig() *LocalConfig {
 	readOnce.Do(func() {
 		lc, err := getLocalConfig()
 		if err != nil {
@@ -29,7 +30,7 @@ func GetLocalConfig() LocalConfig {
 		}
 		localConfig = lc
 	})
-	return localConfig
+	return &localConfig
 }
 
 func getLocalConfig() (LocalConfig, error) {
@@ -117,4 +118,24 @@ func read(filePath string) (LocalConfig, error) {
 	}
 
 	return config, nil
+}
+
+func (lc *LocalConfig) Image(src string) (*ConfigImage, bool) {
+	ref, err := name.ParseReference(src)
+	if err != nil {
+		return nil, false
+	}
+	refName := ref.Name()
+
+	for imgName, img := range lc.Images {
+		imgRef, err := name.ParseReference(imgName)
+		if err != nil {
+			continue
+		}
+		if imgRef.Name() == refName {
+			return &img, true
+		}
+	}
+
+	return nil, false
 }
