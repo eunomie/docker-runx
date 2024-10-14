@@ -21,11 +21,9 @@ func pruneNewCmd(dockerCli command.Cli) *cobra.Command {
 			cache := runkit.NewLocalCache(dockerCli)
 
 			if !force {
-				err := huh.NewForm(
-					huh.NewGroup(
-						huh.NewConfirm().
-							Title("Are you sure you want to remove all cache entries?").
-							Value(&force))).Run()
+				err := huh.NewConfirm().
+					Title("Are you sure you want to remove all cache entries?").
+					Value(&force).Run()
 				if err != nil {
 					return err
 				}

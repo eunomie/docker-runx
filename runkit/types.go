@@ -34,6 +34,7 @@ type (
 		Prompt      string   `yaml:"prompt,omitempty" json:"prompt,omitempty"`
 		Required    bool     `yaml:"required,omitempty" json:"required,omitempty"`
 		Values      []string `yaml:"values,omitempty" json:"values,omitempty"`
+		Default     string   `yaml:"default,omitempty" json:"default,omitempty"`
 	}
 
 	ActionType string

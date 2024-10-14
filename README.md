@@ -143,6 +143,7 @@ actions:
         required: true|false # If required, an empty value will not be accepted.
         values: # A list of possible values for the option. If set, a select will be displayed to the user.
           - VALUE
+        default: VALUE # The default value for the option.
     # The command to run. It's defined as a Go template and can use the following variables:
     # - `.Ref` will be replaced by the reference to the image the user provided.
     # - `.IsTTY` indicates if the command is run in a TTY environment.

@@ -72,15 +72,19 @@ func Ask(action *runkit.Action, opts map[string]string) (map[string]string, erro
 				huh.NewInput().
 					Title(cmp.Or(opt.Prompt, cmp.Or(opt.Description, opt.Name))).
 					Key(opt.Name).
+					Description(opt.Description).
+					Placeholder(opt.Default).
+					Suggestions(sugar.If(opt.Default != "", []string{opt.Default}, nil)).
 					Validate(checkRequired(opt.Required)))
 		} else {
 			fields = append(fields,
 				huh.NewSelect[string]().
 					Title(cmp.Or(opt.Prompt, cmp.Or(opt.Description, opt.Name))).
 					Key(opt.Name).
+					Description(opt.Description).
 					Validate(checkRequired(opt.Required)).
 					Options(pizza.Map(opt.Values, func(str string) huh.Option[string] {
-						return huh.NewOption(str, str)
+						return huh.NewOption(str, str).Selected(str == opt.Default)
 					})...))
 		}
 		asked = append(asked, opt.Name)
