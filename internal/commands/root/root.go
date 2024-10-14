@@ -7,6 +7,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/eunomie/docker-runx/internal/commands/cache"
+
 	"github.com/charmbracelet/huh/spinner"
 	"github.com/gertd/go-pluralize"
 	"github.com/spf13/cobra"
@@ -159,6 +161,7 @@ func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 		help.NewCmd(dockerCli, cmd),
 		version.NewCmd(dockerCli),
 		decorate.NewCmd(dockerCli),
+		cache.NewCmd(dockerCli),
 	)
 
 	f := cmd.Flags()
