@@ -25,7 +25,7 @@ type (
 	}
 
 	Cache interface {
-		Get(digest string) (*RunKit, error)
+		Get(digest, src string) (*RunKit, error)
 		Set(digest string, runxConfig, runxDoc []byte) error
 	}
 )
@@ -60,7 +60,7 @@ func Get(ctx context.Context, cache Cache, src string) (*RunKit, error) {
 
 	indexDigest = desc.Digest.String()
 
-	cached, err = cache.Get(indexDigest)
+	cached, err = cache.Get(indexDigest, src)
 	if err == nil && cached != nil {
 		return cached, nil
 	}
