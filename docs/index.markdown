@@ -296,3 +296,9 @@ To install it manually:
 	...
 }
 ```
+
+## About
+
+This project _is not_ maintained by Docker but was a submission for the October 2024 [Docker](https://docker.com) internal Hackathon.
+
+This project is maintained by [eunomie](https://github.com/eunomie) ([tw](https://twitter.com/_crev_), [ws](https://me.winsos.net)).

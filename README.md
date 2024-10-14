@@ -15,6 +15,7 @@ _This was initially created for the October 2024 [Docker](https://docker.com) Ha
 * [CLI Plugin Installation](#cli-plugin-installation)
   * [Script Installation (macOS and Linux/WSL)](#script-installation-macos-and-linuxwsl)
   * [Manual Installation](#manual-installation)
+* [About](#about)
 
 ## Main Usage
 
@@ -305,3 +306,8 @@ To install it manually:
 ```
 </details>
 
+## About
+
+This project _is not_ maintained by Docker but was a submission for the October 2024 [Docker](https://docker.com) internal Hackathon.
+
+This project is maintained by [eunomie](https://github.com/eunomie) ([tw](https://twitter.com/_crev_), [ws](https://me.winsos.net)).
