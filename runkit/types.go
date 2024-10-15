@@ -43,8 +43,9 @@ type (
 	OptType string
 
 	LocalConfig struct {
-		Ref    string                 `yaml:"ref,omitempty" json:"ref,omitempty"`
-		Images map[string]ConfigImage `yaml:"images,omitempty" json:"images,omitempty"`
+		AcceptTheRisk bool                   `yaml:"accept-the-risk,omitempty" json:"accept-the-risk,omitempty"`
+		Ref           string                 `yaml:"ref,omitempty" json:"ref,omitempty"`
+		Images        map[string]ConfigImage `yaml:"images,omitempty" json:"images,omitempty"`
 	}
 
 	ConfigImage struct {

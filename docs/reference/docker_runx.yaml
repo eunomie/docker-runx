@@ -57,6 +57,17 @@ options:
       experimentalcli: false
       kubernetes: false
       swarm: false
+    - option: "yes"
+      shorthand: "y"
+      value_type: bool
+      default_value: "false"
+      description: Do not check flags before running the command
+      deprecated: false
+      hidden: false
+      experimental: false
+      experimentalcli: false
+      kubernetes: false
+      swarm: false
 deprecated: false
 hidden: false
 experimental: false

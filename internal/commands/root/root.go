@@ -122,7 +122,7 @@ func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 					if tui.IsATTY(dockerCli.In().FD()) && len(rk.Config.Actions) > 0 {
 						selectedAction := prompt.SelectAction(rk.Config.Actions)
 						if selectedAction != "" {
-							return run(cmd.Context(), dockerCli.Err(), src, rk, selectedAction)
+							return run(cmd.Context(), dockerCli.Err(), src, rk, selectedAction, lc)
 						}
 					} else {
 						_, _ = fmt.Fprintln(dockerCli.Out(), tui.Markdown(mdActions(rk)))
@@ -131,7 +131,7 @@ func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 				}
 
 				if action != "" {
-					return run(cmd.Context(), dockerCli.Err(), src, rk, action)
+					return run(cmd.Context(), dockerCli.Err(), src, rk, action, lc)
 				}
 
 				return cmd.Help()
@@ -199,7 +199,7 @@ func getValuesLocal(src, action string) map[string]string {
 	return localOpts
 }
 
-func run(ctx context.Context, out io.Writer, src string, rk *runkit.RunKit, action string) error {
+func run(ctx context.Context, out io.Writer, src string, rk *runkit.RunKit, action string, lc *runkit.LocalConfig) error {
 	runnable, cleanup, err := rk.GetRunnable(action)
 	defer cleanup()
 	if err != nil {
@@ -238,7 +238,7 @@ func run(ctx context.Context, out io.Writer, src string, rk *runkit.RunKit, acti
 `, runnable.Command)
 
 	var flags []string
-	if !noFlagCheck {
+	if !noFlagCheck && !lc.AcceptTheRisk {
 		flags, err = runnable.CheckFlags()
 	}
 	if err != nil {
