@@ -3,6 +3,7 @@ package prompt
 import (
 	"cmp"
 	"errors"
+	"strconv"
 	"strings"
 
 	"github.com/charmbracelet/huh"
@@ -53,10 +54,11 @@ func Ask(action *runkit.Action, opts map[string]string) (map[string]string, erro
 	}
 
 	var (
-		err    error
-		form   *huh.Form
-		fields []huh.Field
-		asked  []string
+		err       error
+		form      *huh.Form
+		fields    []huh.Field
+		asked     []string
+		boolAsked []string
 	)
 
 	for _, opt := range action.Options {
@@ -67,27 +69,41 @@ func Ask(action *runkit.Action, opts map[string]string) (map[string]string, erro
 			continue
 		}
 		opt := opt
-		if len(opt.Values) == 0 {
+
+		var (
+			title       = cmp.Or(opt.Prompt, cmp.Or(opt.Description, opt.Name))
+			description = sugar.If(title != opt.Description, opt.Description, "")
+		)
+		switch opt.Type {
+		case runkit.OptTypeInput:
 			fields = append(fields,
 				huh.NewInput().
-					Title(cmp.Or(opt.Prompt, cmp.Or(opt.Description, opt.Name))).
+					Title(title).
 					Key(opt.Name).
-					Description(opt.Description).
+					Description(description).
 					Placeholder(opt.Default).
 					Suggestions(sugar.If(opt.Default != "", []string{opt.Default}, nil)).
 					Validate(checkRequired(opt.Required)))
-		} else {
+			asked = append(asked, opt.Name)
+		case runkit.OptTypeSelect:
 			fields = append(fields,
 				huh.NewSelect[string]().
-					Title(cmp.Or(opt.Prompt, cmp.Or(opt.Description, opt.Name))).
+					Title(title).
 					Key(opt.Name).
-					Description(opt.Description).
+					Description(description).
 					Validate(checkRequired(opt.Required)).
 					Options(pizza.Map(opt.Values, func(str string) huh.Option[string] {
 						return huh.NewOption(str, str).Selected(str == opt.Default)
 					})...))
+			asked = append(asked, opt.Name)
+		case runkit.OptTypeConfirm:
+			fields = append(fields,
+				huh.NewConfirm().
+					Title(title).
+					Key(opt.Name).
+					Description(description))
+			boolAsked = append(boolAsked, opt.Name)
 		}
-		asked = append(asked, opt.Name)
 	}
 
 	if len(fields) == 0 {
@@ -101,6 +117,9 @@ func Ask(action *runkit.Action, opts map[string]string) (map[string]string, erro
 
 	for _, optName := range asked {
 		opts[optName] = form.GetString(optName)
+	}
+	for _, optName := range boolAsked {
+		opts[optName] = strconv.FormatBool(form.GetBool(optName))
 	}
 
 	return opts, nil

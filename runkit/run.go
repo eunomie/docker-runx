@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"text/template"
 
@@ -117,6 +118,14 @@ func (r *Runnable) compute() error {
 		},
 		"opt": func(optName string) string {
 			return r.data.Opts[optName]
+		},
+		"optBool": func(optName string) bool {
+			o, ok := r.data.Opts[optName]
+			if !ok {
+				return false
+			}
+			v, _ := strconv.ParseBool(o)
+			return v
 		},
 		"sh": func(cmdName string) (string, error) {
 			v, ok := shells[cmdName]

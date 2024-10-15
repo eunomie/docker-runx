@@ -188,6 +188,17 @@ func decodeConfig(rk *RunKit, src string, runxConfig []byte) error {
 			a.isDefault = true
 		}
 
+		for i, o := range a.Options {
+			if o.Type == OptTypeNotSet {
+				if len(o.Values) > 0 {
+					o.Type = OptTypeSelect
+				} else {
+					o.Type = OptTypeInput
+				}
+				a.Options[i] = o
+			}
+		}
+
 		actions = append(actions, a)
 	}
 	config.Actions = actions
