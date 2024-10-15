@@ -29,6 +29,7 @@ type (
 
 	Opt struct {
 		Name        string   `yaml:"name" json:"name"`
+		Type        OptType  `yaml:"type,omitempty" json:"type,omitempty"`
 		Description string   `yaml:"desc" json:"desc,omitempty"`
 		NoPrompt    bool     `yaml:"no-prompt,omitempty" json:"no-prompt,omitempty"`
 		Prompt      string   `yaml:"prompt,omitempty" json:"prompt,omitempty"`
@@ -38,6 +39,8 @@ type (
 	}
 
 	ActionType string
+
+	OptType string
 
 	LocalConfig struct {
 		Ref    string                 `yaml:"ref,omitempty" json:"ref,omitempty"`
@@ -58,8 +61,13 @@ type (
 const (
 	ActionTypeRun   ActionType = "run"
 	ActionTypeBuild ActionType = "build"
+
+	OptTypeNotSet  OptType = ""
+	OptTypeInput   OptType = "input"
+	OptTypeSelect  OptType = "select"
+	OptTypeConfirm OptType = "confirm"
 )
 
-func (a *Action) IsDefault() bool {
-	return a.isDefault
+func (action *Action) IsDefault() bool {
+	return action.isDefault
 }

@@ -130,6 +130,7 @@ actions:
     # A list of options that can be provided by the user.
     opts:
       - name: OPTION_NAME # Name of the option. Also used in the local override or with `--opt` flag.
+        type: input|select|confirm # Type of the option.
         desc: DESCRIPTION # Description, rendered in the documentation of the action.
         prompt: PROMPT # A specific prompt to ask the user for the value.
         no-prompt: true|false # If set to true, the option will not be prompted to the user.
@@ -148,6 +149,8 @@ actions:
     #   The environment variable needs to be defined in the `env` section.
     # - `{{opt "OPTION"}}` will be replaced by the value of the option `OPTION`.
     #   The value needs to be provided by the local configuration, on the command line or interactively.
+    # - `{{optBool "OPTION"}}` is equivalent to `{{opt "OPTION"}}` but will return the value as a boolean.
+    #   True values are `1`, `t`, `T`, `TRUE`, `true` and `True`. Everything else is considered as false.
     # - `{{sh "COMMAND"}}` will be replaced by the output of the shell command `COMMAND`.
     #   The command will be run using https://github.com/mvdan/sh without a standard input.
     cmd: COMMAND
