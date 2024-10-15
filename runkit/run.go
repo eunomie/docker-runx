@@ -8,6 +8,8 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/google/shlex"
+	"github.com/spf13/pflag"
 	"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
@@ -149,6 +151,19 @@ func (r *Runnable) compute() error {
 	return nil
 }
 
+func flagSet() *pflag.FlagSet {
+	f := pflag.NewFlagSet("", pflag.ContinueOnError)
+	f.ParseErrorsWhitelist.UnknownFlags = true
+	f.StringArrayP("volume", "v", nil, "")
+	f.StringArray("mount", nil, "")
+	f.StringArrayP("publish", "p", nil, "")
+	f.StringP("publish-all", "P", "", "")
+	f.String("pid", "", "")
+	f.Bool("privileged", false, "")
+	f.String("network", "", "")
+	return f
+}
+
 func (r *Runnable) SetOptionValues(opts map[string]string) error {
 	for _, opt := range r.Action.Options {
 		if opt.Required && opts[opt.Name] == "" {
@@ -163,7 +178,43 @@ func (r *Runnable) SetOptionValues(opts map[string]string) error {
 	}
 
 	r.Command = fmt.Sprintf("%s %s", r.command, r.args)
+
 	return nil
+}
+
+func (r *Runnable) CheckFlags() ([]string, error) {
+	if r.Action.Type != ActionTypeRun {
+		return nil, nil
+	}
+	tokens, err := shlex.Split(r.args)
+	if err != nil {
+		return nil, err
+	}
+
+	f := flagSet()
+	if err = f.Parse(tokens); err != nil {
+		return nil, err
+	}
+	if f.NArg() > 0 {
+		args, _, _ := strings.Cut(r.args, f.Arg(0))
+		tokens, err = shlex.Split(args)
+		if err != nil {
+			return nil, err
+		}
+		f = flagSet()
+		if err = f.Parse(tokens); err != nil {
+			return nil, err
+		}
+	}
+
+	var flagsSet []string
+	f.Visit(func(flag *pflag.Flag) {
+		if flag.Changed {
+			flagsSet = append(flagsSet, flag.Name)
+		}
+	})
+
+	return flagsSet, nil
 }
 
 func (r *Runnable) Run(ctx context.Context) error {
