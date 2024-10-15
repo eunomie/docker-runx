@@ -21,6 +21,7 @@ Docker Run, better
 | `-d`, `--docs` | `bool`        |         | Print the documentation of the image                              |
 | `-l`, `--list` | `bool`        |         | List available actions                                            |
 | `--opt`        | `stringArray` |         | Set an option value                                               |
+| `-y`, `--yes`  | `bool`        |         | Do not check flags before running the command                     |
 
 
 <!---MARKER_GEN_END-->

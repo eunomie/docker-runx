@@ -172,6 +172,10 @@ This is useful to configure some actions for a specific project for instance.
 
 ```yaml
 # Optional.
+# If set to true, the user will not be prompted to check some security risks.
+# If not set, the user will be prompted for confirmation based on flags like volume, mounts, privileged, etc.
+accept-the-risk: true|false
+# Optional.
 # It allows to define a default reference to an image if none is provided by the user.
 # with the ref set to IMAGE a `docker runx` is equivalent to `docker runx IMAGE`
 ref: IMAGE

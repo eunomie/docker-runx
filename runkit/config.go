@@ -62,6 +62,7 @@ func getLocalConfig() (LocalConfig, error) {
 }
 
 func merge(a, b LocalConfig) LocalConfig {
+	a.AcceptTheRisk = cmp.Or(b.AcceptTheRisk, a.AcceptTheRisk)
 	a.Ref = cmp.Or(b.Ref, a.Ref)
 	if a.Images == nil {
 		a.Images = b.Images
