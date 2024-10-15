@@ -30,10 +30,11 @@ import (
 )
 
 var (
-	docs bool
-	list bool
-	ask  bool
-	opts []string
+	docs        bool
+	list        bool
+	ask         bool
+	opts        []string
+	noFlagCheck bool
 )
 
 func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
@@ -171,6 +172,7 @@ func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 	f.BoolVarP(&list, "list", "l", false, "List available actions")
 	f.BoolVar(&ask, "ask", false, "Do not read local configuration option values and always ask them")
 	f.StringArrayVar(&opts, "opt", nil, "Set an option value")
+	f.BoolVarP(&noFlagCheck, "yes", "y", false, "Do not check flags before running the command")
 
 	return cmd
 }
@@ -235,7 +237,11 @@ func run(ctx context.Context, out io.Writer, src string, rk *runkit.RunKit, acti
 ---
 `, runnable.Command)
 
-	if flags, err := runnable.CheckFlags(); err != nil {
+	var flags []string
+	if !noFlagCheck {
+		flags, err = runnable.CheckFlags()
+	}
+	if err != nil {
 		return err
 	} else if len(flags) > 0 {
 		_, _ = fmt.Fprintln(out, tui.Markdown(mdCommand+fmt.Sprintf(`
