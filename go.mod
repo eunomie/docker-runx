@@ -9,6 +9,7 @@ require (
 	github.com/charmbracelet/lipgloss v0.13.0
 	github.com/docker/cli v27.3.1+incompatible
 	github.com/docker/cli-docs-tool v0.8.0
+	github.com/dustin/go-humanize v1.0.1
 	github.com/gertd/go-pluralize v0.2.1
 	github.com/google/go-containerregistry v0.20.2
 	github.com/mattn/go-isatty v0.0.20
@@ -17,6 +18,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	golang.org/x/term v0.24.0
 	gopkg.in/yaml.v2 v2.4.0
+	gopkg.in/yaml.v3 v3.0.1
 	mvdan.cc/sh/v3 v3.9.0
 )
 
@@ -48,7 +50,6 @@ require (
 	github.com/docker/go-connections v0.5.0 // indirect
 	github.com/docker/go-metrics v0.0.0-20180209012529-399ea8c73916 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
-	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/erikgeiser/coninput v0.0.0-20211004153227-1c3628e74d0f // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/fvbommel/sortorder v1.1.0 // indirect
@@ -113,6 +114,5 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240903143218-8af14fe29dc1 // indirect
 	google.golang.org/grpc v1.66.1 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gotest.tools/v3 v3.5.1 // indirect
 )
