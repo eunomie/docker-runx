@@ -45,10 +45,10 @@ func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 			Short: "Docker Run, better",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				var (
-					src    string
-					action string
-					lc     = runkit.GetLocalConfig()
-					cache  = runkit.NewLocalCache(dockerCli)
+					src        string
+					action     string
+					lc         = runkit.GetLocalConfig()
+					localCache = runkit.NewLocalCache(dockerCli)
 				)
 
 				switch len(args) {
@@ -79,6 +79,8 @@ func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 					return cmd.Help()
 				}
 
+				_ = localCache.EraseNotAccessedInLast30Days()
+
 				var (
 					err error
 					rk  *runkit.RunKit
@@ -89,14 +91,14 @@ func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 						Type(spinner.Globe).
 						Title(" Fetching runx details...").
 						Action(func() {
-							rk, err = runkit.Get(cmd.Context(), cache, src)
+							rk, err = runkit.Get(cmd.Context(), localCache, src)
 							if err != nil {
 								_, _ = fmt.Fprintln(dockerCli.Err(), err)
 								os.Exit(1)
 							}
 						}).Run()
 				} else {
-					rk, err = runkit.Get(cmd.Context(), cache, src)
+					rk, err = runkit.Get(cmd.Context(), localCache, src)
 				}
 				if err != nil {
 					return err
