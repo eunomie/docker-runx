@@ -5,6 +5,8 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
+	"time"
 
 	"github.com/docker/cli/cli/command"
 	"github.com/eunomie/docker-runx/internal/constants"
@@ -13,6 +15,7 @@ import (
 const (
 	runxConfigFile = "runx.yaml"
 	runxDocFile    = "README.md"
+	accessFile     = "access"
 )
 
 var subCacheDir = filepath.Join(constants.SubCommandName, "cache", "sha256")
@@ -23,8 +26,9 @@ type (
 	}
 
 	CacheEntry struct {
-		Digest string
-		Size   int64
+		LastAccess *time.Time
+		Digest     string
+		Size       int64
 	}
 )
 
@@ -66,10 +70,19 @@ func (c *LocalCache) Get(digest, src string) (*RunKit, error) {
 	}
 
 	if found {
+		if err := c.writeAccessFile(digest); err != nil {
+			return nil, err
+		}
+
 		rk.src = src
 		return rk, nil
 	}
 	return nil, nil
+}
+
+func (c *LocalCache) writeAccessFile(digest string) error {
+	accessDate := time.Now().Format(time.RFC3339)
+	return os.WriteFile(filepath.Join(c.cacheDir, digest, accessFile), []byte(accessDate), 0o644)
 }
 
 func (c *LocalCache) Set(digest string, runxConfig, runxDoc []byte) error {
@@ -89,6 +102,9 @@ func (c *LocalCache) Set(digest string, runxConfig, runxDoc []byte) error {
 			return err
 		}
 	}
+	if err := c.writeAccessFile(digest); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -105,9 +121,11 @@ func (c *LocalCache) ListCache() (string, []CacheEntry, int64, error) {
 				return e
 			}
 			totalSize += s
+			t := c.lastAccess(path)
 			entries = append(entries, CacheEntry{
-				Digest: filepath.Base(path),
-				Size:   s,
+				Digest:     filepath.Base(path),
+				Size:       s,
+				LastAccess: t,
 			})
 			return fs.SkipDir
 		}
@@ -122,8 +140,35 @@ func (c *LocalCache) ListCache() (string, []CacheEntry, int64, error) {
 	return c.cacheDir, entries, totalSize, nil
 }
 
-func (c *LocalCache) Erase() error {
+func (c *LocalCache) EraseAll() error {
 	return os.RemoveAll(c.cacheDir)
+}
+
+func (c *LocalCache) EraseNotAccessedInLast30Days() error {
+	_, entries, _, err := c.ListCache()
+	if err != nil {
+		return err
+	}
+	for _, e := range entries {
+		if e.LastAccess != nil && time.Since(*e.LastAccess) > 30*24*time.Hour {
+			if err := os.RemoveAll(filepath.Join(c.cacheDir, e.Digest)); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (c *LocalCache) lastAccess(path string) *time.Time {
+	b, err := os.ReadFile(filepath.Join(path, accessFile))
+	if err != nil {
+		return nil
+	}
+	if t, err := time.Parse(time.RFC3339, strings.TrimSpace(string(b))); err != nil {
+		return nil
+	} else {
+		return &t
+	}
 }
 
 func dirSize(path string) (int64, error) {
