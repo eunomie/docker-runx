@@ -14,6 +14,7 @@ import (
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
 
+	"github.com/eunomie/docker-runx/internal/pizza"
 	"github.com/eunomie/docker-runx/internal/tui"
 )
 
@@ -186,7 +187,7 @@ func (r *Runnable) CheckFlags() ([]string, error) {
 	if r.Action.Type != ActionTypeRun {
 		return nil, nil
 	}
-	tokens, err := shlex.Split(r.args)
+	tokens, err := splitArgs(r.args)
 	if err != nil {
 		return nil, err
 	}
@@ -197,7 +198,7 @@ func (r *Runnable) CheckFlags() ([]string, error) {
 	}
 	if f.NArg() > 0 {
 		args, _, _ := strings.Cut(r.args, f.Arg(0))
-		tokens, err = shlex.Split(args)
+		tokens, err = splitArgs(args)
 		if err != nil {
 			return nil, err
 		}
@@ -215,6 +216,11 @@ func (r *Runnable) CheckFlags() ([]string, error) {
 	})
 
 	return flagsSet, nil
+}
+
+func splitArgs(args string) ([]string, error) {
+	tokens, err := shlex.Split(args)
+	return pizza.Map(tokens, strings.TrimSpace), err
 }
 
 func (r *Runnable) Run(ctx context.Context) error {

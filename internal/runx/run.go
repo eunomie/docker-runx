@@ -59,7 +59,7 @@ func Run(ctx context.Context, out io.Writer, rk *runkit.RunKit, lc *runkit.Local
     %s
 
 ---
-`, runnable.Command)
+`, "\n```\n"+runnable.Command+"\n```\n")
 
 	var flags []string
 	if !runConfig.NoConfirm && !lc.AcceptTheRisk {

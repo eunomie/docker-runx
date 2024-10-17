@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
-	"strings"
 
 	"github.com/google/go-containerregistry/pkg/name"
 	v1 "github.com/google/go-containerregistry/pkg/v1"
@@ -175,9 +174,6 @@ func decodeConfig(rk *RunKit, src string, runxConfig []byte) error {
 	}
 	var actions []Action
 	for _, a := range config.Actions {
-		// TODO: fix reading of multiline YAML strings
-		a.Command = strings.ReplaceAll(a.Command, "\n", " ")
-
 		if a.Dockerfile != "" {
 			if c, ok := rk.Files[a.Dockerfile]; ok {
 				a.DockerfileContent = c
