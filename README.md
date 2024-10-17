@@ -4,7 +4,7 @@
 
 _This was initially created for the October 2024 [Docker](https://docker.com) Hackathon_
 
-![Docker Runx blue marlin mascot](./docs/assets/blue_marlin.png)
+![demo](https://eunomie.github.io/docker-runx/assets/docker_runx.mp4)
 
 * [Main Usage](#main-usage)
 * [Reference](#reference)
