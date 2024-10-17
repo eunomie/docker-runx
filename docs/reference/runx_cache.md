@@ -11,6 +11,12 @@ Manage Docker RunX cache and temporary files
 | [`prune`](runx_cache_prune.md) | Remove cache entries not accessed recently |
 
 
+### Options
+
+| Name           | Type   | Default | Description                                    |
+|:---------------|:-------|:--------|:-----------------------------------------------|
+| `-h`, `--help` | `bool` |         | Print usage or runx image/action documentation |
+
 
 <!---MARKER_GEN_END-->
 

@@ -79,7 +79,7 @@ func MDActions(rk *runkit.RunKit) string {
 			}
 		}
 
-		s.WriteString("\n> Use `docker runx IMAGE ACTION --docs` to get more details about an action\n")
+		s.WriteString("\n> Use `docker runx IMAGE ACTION --help` to get more details about an action\n")
 	}
 
 	return s.String()

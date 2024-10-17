@@ -54,7 +54,7 @@ $ docker runx decorate alpine --tag NAMESPACE/REPOSITORY
 You can then display the embedded readme:
 
 ```
-$ dockedr runx NAMESPACE/REPOSITORY --docs
+$ docker runx NAMESPACE/REPOSITORY --help
 ```
 
 Or run the `hello` action:
@@ -69,7 +69,7 @@ See more examples in the [examples](/examples) directory.
 
 ### Usage
 
-> `docker runx IMAGE --docs`
+> `docker runx IMAGE --help`
 >
 > Display the embedded documentation of an image and print the list of available actions.
 
@@ -81,7 +81,7 @@ See more examples in the [examples](/examples) directory.
 >
 > Run a specific action on an image.
 
-> `docker runx IMAGE ACTION --docs`
+> `docker runx IMAGE ACTION --help`
 >
 > Display a detailed documentation of a specific action. This will also display the list of available options, shell scripts, environment variables.
 
