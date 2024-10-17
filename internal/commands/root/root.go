@@ -3,6 +3,10 @@ package root
 import (
 	"context"
 	"fmt"
+	"io"
+	"os"
+	"strings"
+	"text/template"
 
 	"github.com/spf13/cobra"
 
@@ -11,7 +15,6 @@ import (
 	"github.com/docker/cli/cli/command"
 	"github.com/eunomie/docker-runx/internal/commands/cache"
 	"github.com/eunomie/docker-runx/internal/commands/decorate"
-	"github.com/eunomie/docker-runx/internal/commands/help"
 	"github.com/eunomie/docker-runx/internal/commands/version"
 	"github.com/eunomie/docker-runx/internal/constants"
 	"github.com/eunomie/docker-runx/internal/prompt"
@@ -27,6 +30,7 @@ var (
 	ask         bool
 	opts        []string
 	noFlagCheck bool
+	helpFlag    bool
 )
 
 func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
@@ -109,6 +113,61 @@ func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 		}
 	)
 
+	cmd.SetHelpFunc(func(c *cobra.Command, args []string) {
+		var (
+			lc         = runkit.GetLocalConfig()
+			localCache = runkit.NewLocalCache(dockerCli)
+			src        string
+			action     string
+			needHelp   bool
+			err        error
+			rk         *runkit.RunKit
+			md         string
+		)
+
+		if isPlugin && len(args) > 0 && args[0] == constants.SubCommandName {
+			args = args[1:]
+		}
+
+		if len(args) > 0 {
+			for _, c := range cmd.Commands() {
+				if strings.HasPrefix(c.Use, args[0]) {
+					printHelp(c)
+					return
+				}
+			}
+		}
+
+		if err := c.ParseFlags(args); err != nil {
+			printHelp(c)
+			return
+		}
+
+		args = c.Flags().Args()
+		src, action, needHelp = parseArgs(c.Context(), args, lc)
+		if needHelp {
+			printHelp(c)
+			return
+		}
+
+		_ = localCache.EraseNotAccessedInLast30Days()
+
+		rk, err = runx.Get(c.Context(), dockerCli.In().FD(), localCache, src)
+		if err != nil {
+			_, _ = fmt.Fprintln(dockerCli.Err(), err)
+			os.Exit(1)
+		}
+
+		if action != "" {
+			md = runx.MDAction(rk, action)
+		} else {
+			md = runx.FullMD(rk)
+		}
+		_, _ = fmt.Fprintln(dockerCli.Out(), tui.Markdown(md))
+	})
+
+	cmd.PersistentFlags().BoolVarP(&helpFlag, "help", "h", false, "Print usage or runx image/action documentation")
+
 	if isPlugin {
 		originalPreRunE := cmd.PersistentPreRunE
 		cmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
@@ -131,7 +190,6 @@ func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 	}
 
 	cmd.AddCommand(
-		help.NewCmd(dockerCli, cmd),
 		version.NewCmd(dockerCli),
 		decorate.NewCmd(dockerCli),
 		cache.NewCmd(dockerCli),
@@ -139,6 +197,7 @@ func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 
 	f := cmd.Flags()
 	f.BoolVarP(&docs, "docs", "d", false, "Print the documentation of the image")
+	_ = f.MarkDeprecated("docs", "use -h/--help instead")
 	f.BoolVarP(&list, "list", "l", false, "List available actions")
 	f.BoolVar(&ask, "ask", false, "Do not read local configuration option values and always ask them")
 	f.StringArrayVar(&opts, "opt", nil, "Set an option value")
@@ -176,6 +235,20 @@ func parseArgs(ctx context.Context, args []string, lc *runkit.LocalConfig) (src,
 		needHelp = true
 	}
 	return
+}
+
+func printHelp(c *cobra.Command) {
+	err := tmpl(c.OutOrStdout(), c.HelpTemplate(), c)
+	if err != nil {
+		c.PrintErrln(err)
+	}
+}
+
+func tmpl(w io.Writer, text string, data interface{}) error {
+	t := template.New("top")
+	// t.Funcs(templateFuncs)
+	template.Must(t.Parse(text))
+	return t.Execute(w, data)
 }
 
 func commandName(isPlugin bool) string {
