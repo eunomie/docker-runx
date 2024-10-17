@@ -7,12 +7,10 @@ plink: docker.yaml
 cname:
     - docker runx cache
     - docker runx decorate
-    - docker runx help
     - docker runx version
 clink:
     - docker_runx_cache.yaml
     - docker_runx_decorate.yaml
-    - docker_runx_help.yaml
     - docker_runx_version.yaml
 options:
     - option: ask
@@ -30,6 +28,17 @@ options:
       value_type: bool
       default_value: "false"
       description: Print the documentation of the image
+      deprecated: true
+      hidden: true
+      experimental: false
+      experimentalcli: false
+      kubernetes: false
+      swarm: false
+    - option: help
+      shorthand: h
+      value_type: bool
+      default_value: "false"
+      description: Print usage or runx image/action documentation
       deprecated: false
       hidden: false
       experimental: false

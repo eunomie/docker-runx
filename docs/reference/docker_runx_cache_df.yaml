@@ -4,6 +4,18 @@ long: Show disk usage
 usage: docker runx cache df
 pname: docker runx cache
 plink: docker_runx_cache.yaml
+inherited_options:
+    - option: help
+      shorthand: h
+      value_type: bool
+      default_value: "false"
+      description: Print usage or runx image/action documentation
+      deprecated: false
+      hidden: false
+      experimental: false
+      experimentalcli: false
+      kubernetes: false
+      swarm: false
 deprecated: false
 hidden: false
 experimental: false

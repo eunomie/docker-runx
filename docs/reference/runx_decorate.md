@@ -7,6 +7,7 @@ Decorate an image by attaching a runx manifest
 
 | Name            | Type     | Default     | Description                                     |
 |:----------------|:---------|:------------|:------------------------------------------------|
+| `-h`, `--help`  | `bool`   |             | Print usage or runx image/action documentation  |
 | `--no-config`   | `bool`   |             | Do not attach a runx configuration to the image |
 | `--no-readme`   | `bool`   |             | Do not attach a README to the image             |
 | `-t`, `--tag`   | `string` |             | Tag to push the decorated image to              |
