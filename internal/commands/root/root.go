@@ -2,15 +2,8 @@ package root
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"io"
-	"os"
-	"strings"
 
-	"github.com/charmbracelet/huh"
-	"github.com/charmbracelet/huh/spinner"
-	"github.com/gertd/go-pluralize"
 	"github.com/spf13/cobra"
 
 	"github.com/docker/cli/cli"
@@ -21,10 +14,9 @@ import (
 	"github.com/eunomie/docker-runx/internal/commands/help"
 	"github.com/eunomie/docker-runx/internal/commands/version"
 	"github.com/eunomie/docker-runx/internal/constants"
-	"github.com/eunomie/docker-runx/internal/pizza"
 	"github.com/eunomie/docker-runx/internal/prompt"
 	"github.com/eunomie/docker-runx/internal/registry"
-	"github.com/eunomie/docker-runx/internal/sugar"
+	"github.com/eunomie/docker-runx/internal/runx"
 	"github.com/eunomie/docker-runx/internal/tui"
 	"github.com/eunomie/docker-runx/runkit"
 )
@@ -45,95 +37,71 @@ func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 			Short: "Docker Run, better",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				var (
-					src        string
-					action     string
-					lc         = runkit.GetLocalConfig()
-					localCache = runkit.NewLocalCache(dockerCli)
+					lc                    = runkit.GetLocalConfig()
+					localCache            = runkit.NewLocalCache(dockerCli)
+					src, action, needHelp = parseArgs(cmd.Context(), args, lc)
+					err                   error
+					rk                    *runkit.RunKit
 				)
 
-				switch len(args) {
-				case 0:
-					src = lc.Ref
-					if src == "" {
-						return cmd.Help()
-					}
-				case 1:
-					if lc.Ref == "" {
-						src = args[0]
-					} else {
-						// here we need to know if the argument is an image or an action
-						// there's no easy way, so what we'll do is to check if the argument is a reachable image
-						if registry.ImageExist(cmd.Context(), args[0]) {
-							// the image exist, let's say we override the default reference
-							src = args[0]
-						} else {
-							// we can't access the image, let's say it's an action
-							src = lc.Ref
-							action = args[0]
-						}
-					}
-				case 2:
-					src = args[0]
-					action = args[1]
-				default:
+				if needHelp {
 					return cmd.Help()
 				}
 
 				_ = localCache.EraseNotAccessedInLast30Days()
 
-				var (
-					err error
-					rk  *runkit.RunKit
-				)
-
-				if tui.IsATTY(dockerCli.In().FD()) {
-					err = spinner.New().
-						Type(spinner.Globe).
-						Title(" Fetching runx details...").
-						Action(func() {
-							rk, err = runkit.Get(cmd.Context(), localCache, src)
-							if err != nil {
-								_, _ = fmt.Fprintln(dockerCli.Err(), err)
-								os.Exit(1)
-							}
-						}).Run()
-				} else {
-					rk, err = runkit.Get(cmd.Context(), localCache, src)
-				}
+				rk, err = runx.Get(cmd.Context(), dockerCli.In().FD(), localCache, src)
 				if err != nil {
 					return err
 				}
 
-				if action == "" && !list && !docs && len(rk.Config.Actions) == 0 {
+				// in case the image only contains the readme, display it
+				// in this case we ignore the other flags or action as there's no action
+				// so we can't do anything else
+				if len(rk.Config.Actions) == 0 {
 					_, _ = fmt.Fprintln(dockerCli.Out(), tui.Markdown(rk.Readme))
 					return nil
 				}
 
 				if docs {
+					var md string
 					if action != "" {
-						_, _ = fmt.Fprintln(dockerCli.Out(), tui.Markdown(mdAction(rk, action)))
+						md = runx.MDAction(rk, action)
 					} else {
-						_, _ = fmt.Fprintln(dockerCli.Out(), tui.Markdown(rk.Readme+"\n---\n"+mdActions(rk)))
+						md = runx.FullMD(rk)
 					}
+					_, _ = fmt.Fprintln(dockerCli.Out(), tui.Markdown(md))
 					return nil
 				}
 
-				action = selectAction(action, src, rk.Config.Default)
+				action = runx.SelectAction(action, src, rk.Config.Default)
 
 				if list || action == "" {
 					if tui.IsATTY(dockerCli.In().FD()) && len(rk.Config.Actions) > 0 {
 						selectedAction := prompt.SelectAction(rk.Config.Actions)
 						if selectedAction != "" {
-							return run(cmd.Context(), dockerCli.Err(), src, rk, selectedAction, lc)
+							return runx.Run(cmd.Context(), dockerCli.Err(), rk, lc, runx.RunConfig{
+								Src:       src,
+								Action:    selectedAction,
+								ForceAsk:  ask,
+								NoConfirm: noFlagCheck,
+								Opts:      opts,
+							})
 						}
 					} else {
-						_, _ = fmt.Fprintln(dockerCli.Out(), tui.Markdown(mdActions(rk)))
+						_, _ = fmt.Fprintln(dockerCli.Out(), tui.Markdown(runx.MDActions(rk)))
 					}
 					return nil
 				}
 
 				if action != "" {
-					return run(cmd.Context(), dockerCli.Err(), src, rk, action, lc)
+					return runx.Run(cmd.Context(), dockerCli.Err(), rk, lc, runx.RunConfig{
+						Src:       src,
+						Action:    action,
+						ForceAsk:  ask,
+						NoConfirm: noFlagCheck,
+						Opts:      opts,
+					})
 				}
 
 				return cmd.Help()
@@ -179,105 +147,35 @@ func NewCmd(dockerCli command.Cli, isPlugin bool) *cobra.Command {
 	return cmd
 }
 
-func getValuesLocal(src, action string) map[string]string {
-	localOpts := make(map[string]string)
-
-	lc := runkit.GetLocalConfig()
-	img, ok := lc.Image(src)
-	if !ok {
-		return localOpts
-	}
-
-	if img.AllActions.Opts != nil {
-		localOpts = img.AllActions.Opts
-	}
-
-	act, ok := img.Actions[action]
-	if ok {
-		for k, v := range act.Opts {
-			localOpts[k] = v
+func parseArgs(ctx context.Context, args []string, lc *runkit.LocalConfig) (src, action string, needHelp bool) {
+	switch len(args) {
+	case 0:
+		src = lc.Ref
+		if src == "" {
+			needHelp = true
 		}
-	}
-	return localOpts
-}
-
-func run(ctx context.Context, out io.Writer, src string, rk *runkit.RunKit, action string, lc *runkit.LocalConfig) error {
-	runnable, cleanup, err := rk.GetRunnable(action)
-	defer cleanup()
-	if err != nil {
-		return err
-	}
-
-	localOpts := map[string]string{}
-
-	if !ask {
-		localOpts = getValuesLocal(src, action)
-
-		for _, opt := range opts {
-			if key, value, ok := strings.Cut(opt, "="); ok {
-				localOpts[key] = value
+	case 1:
+		if lc.Ref == "" {
+			src = args[0]
+		} else {
+			// here we need to know if the argument is an image or an action
+			// there's no easy way, so what we'll do is to check if the argument is a reachable image
+			if registry.ImageExist(ctx, args[0]) {
+				// the image exist, let's say we override the default reference
+				src = args[0]
 			} else {
-				return fmt.Errorf("invalid option value %s", opt)
+				// we can't access the image, let's say it's an action
+				src = lc.Ref
+				action = args[0]
 			}
 		}
+	case 2:
+		src = args[0]
+		action = args[1]
+	default:
+		needHelp = true
 	}
-
-	options, err := prompt.Ask(runnable.Action, localOpts)
-	if err != nil {
-		return err
-	}
-
-	if err = runnable.SetOptionValues(options); err != nil {
-		return err
-	}
-
-	mdCommand := fmt.Sprintf(`
-> **Running the following command:**
-
-    %s
-
----
-`, runnable.Command)
-
-	var flags []string
-	if !noFlagCheck && !lc.AcceptTheRisk {
-		flags, err = runnable.CheckFlags()
-	}
-	if err != nil {
-		return err
-	} else if len(flags) > 0 {
-		_, _ = fmt.Fprintln(out, tui.Markdown(mdCommand+fmt.Sprintf(`
-> **Some flags require your attention:**
-
-%s
-`, strings.Join(pizza.Map(flags, func(flag string) string {
-			return fmt.Sprintf("- `%s`", flag)
-		}), "\n"))))
-		var cont bool
-		err = huh.NewConfirm().Title("Continue?").Value(&cont).Run()
-		if err != nil {
-			return err
-		}
-		if !cont {
-			return errors.New("aborted")
-		}
-	} else {
-		_, _ = fmt.Fprintln(out, tui.Markdown(mdCommand))
-	}
-
-	return runnable.Run(ctx)
-}
-
-func selectAction(action, src, defaultAction string) string {
-	if action != "" {
-		return action
-	}
-
-	if conf, ok := runkit.GetLocalConfig().Image(src); ok && conf.Default != "" {
-		return conf.Default
-	}
-
-	return defaultAction
+	return
 }
 
 func commandName(isPlugin bool) string {
@@ -286,83 +184,4 @@ func commandName(isPlugin bool) string {
 		name = constants.BinaryName
 	}
 	return name
-}
-
-func mdAction(rk *runkit.RunKit, action string) string {
-	var (
-		act   runkit.Action
-		found bool
-	)
-	for _, a := range rk.Config.Actions {
-		if a.ID == action {
-			found = true
-			act = a
-			break
-		}
-	}
-	if !found {
-		return fmt.Sprintf("> action %q not found\n\n%s", action, mdActions(rk))
-	}
-
-	s := strings.Builder{}
-	if act.Desc != "" {
-		s.WriteString(fmt.Sprintf("`%s`%s: %s\n", act.ID, sugar.If(act.IsDefault(), " (default)", ""), act.Desc))
-	} else {
-		s.WriteString(fmt.Sprintf("`%s`\n", act.ID))
-	}
-	if len(act.Env) > 0 {
-		s.WriteString("\n- Environment " + plural("variable", len(act.Env)) + ":\n")
-		for _, env := range act.Env {
-			s.WriteString("    - `" + env + "`\n")
-		}
-	}
-	if len(act.Options) > 0 {
-		s.WriteString("\n- " + plural("Option", len(act.Options)) + ":\n")
-		for _, opt := range act.Options {
-			s.WriteString("    - `" + opt.Name + "`" + sugar.If(opt.Description != "", ": "+opt.Description, "") + "\n")
-		}
-	}
-	if len(act.Shell) > 0 {
-		s.WriteString("\n- Shell " + plural("command", len(act.Shell)) + ":\n")
-		for name, cmd := range act.Shell {
-			s.WriteString("    - `" + name + "`: `" + cmd + "`\n")
-		}
-	}
-	s.WriteString("\n- " + capitalizedTypes[act.Type] + " command:\n")
-	s.WriteString("```\n" + act.Command + "\n```\n")
-
-	return s.String()
-}
-
-var capitalizedTypes = map[runkit.ActionType]string{
-	runkit.ActionTypeRun:   "Run",
-	runkit.ActionTypeBuild: "Build",
-}
-
-func mdActions(rk *runkit.RunKit) string {
-	s := strings.Builder{}
-	s.WriteString("# Available actions\n\n")
-	if len(rk.Config.Actions) == 0 {
-		s.WriteString("> No available action\n")
-	} else {
-		for _, action := range rk.Config.Actions {
-			if action.Desc != "" {
-				s.WriteString(fmt.Sprintf("  - `%s`%s: %s\n", action.ID, sugar.If(action.IsDefault(), "(default)", ""), action.Desc))
-			} else {
-				s.WriteString(fmt.Sprintf("  - `%s`\n", action.ID))
-			}
-		}
-
-		s.WriteString("\n> Use `docker runx IMAGE ACTION --docs` to get more details about an action\n")
-	}
-
-	return s.String()
-}
-
-func plural(str string, n int) string {
-	p := pluralize.NewClient()
-	if n > 1 {
-		return p.Plural(str)
-	}
-	return str
 }
