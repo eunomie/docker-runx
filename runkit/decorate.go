@@ -17,28 +17,35 @@ import (
 
 func Decorate(ctx context.Context, src, dest string, runxConfig, runxDoc []byte) error {
 	var (
-		index                    v1.ImageIndex
-		desc                     *remote.Descriptor
-		remoteOpts               = registry.WithOptions(ctx, nil)
-		ref, _                   = name.ParseReference(src)
-		destRef, _               = name.ParseReference(dest)
-		runxImage, runxDesc, err = Image(runxConfig, runxDoc)
+		err          error
+		index        v1.ImageIndex
+		desc         *remote.Descriptor
+		remoteOpts   = registry.WithOptions(ctx, nil)
+		ref, destRef name.Reference
+		runxImage    v1.Image
+		runxDesc     *v1.Descriptor
 	)
 
-	if err != nil {
+	if ref, err = name.ParseReference(src); err != nil {
+		return err
+	}
+	if destRef, err = name.ParseReference(dest); err != nil {
+		return err
+	}
+	if runxImage, runxDesc, err = Image(runxConfig, runxDoc); err != nil {
 		return fmt.Errorf("could not create runx image: %w", err)
 	}
 
 	if src == "scratch" {
 		index = // create a manifest
-		mutate.AppendManifests(
-			// as an index
-			mutate.IndexMediaType(empty.Index, types.OCIImageIndex),
-			// and the new runx image
-			mutate.IndexAddendum{
-				Add:        runxImage,
-				Descriptor: *runxDesc,
-			})
+			mutate.AppendManifests(
+				// as an index
+				mutate.IndexMediaType(empty.Index, types.OCIImageIndex),
+				// and the new runx image
+				mutate.IndexAddendum{
+					Add:        runxImage,
+					Descriptor: *runxDesc,
+				})
 	} else {
 		desc, err = remote.Get(ref, remoteOpts...)
 		if err != nil {
@@ -55,19 +62,19 @@ func Decorate(ctx context.Context, src, dest string, runxConfig, runxDoc []byte)
 			imgDesc.Platform = configFile.Platform()
 
 			index = // create a manifest
-			mutate.AppendManifests(
-				// as an index
-				mutate.IndexMediaType(empty.Index, types.OCIImageIndex),
-				// with the referenced image
-				mutate.IndexAddendum{
-					Add:        img,
-					Descriptor: imgDesc,
-				},
-				// and the new runx image
-				mutate.IndexAddendum{
-					Add:        runxImage,
-					Descriptor: *runxDesc,
-				})
+				mutate.AppendManifests(
+					// as an index
+					mutate.IndexMediaType(empty.Index, types.OCIImageIndex),
+					// with the referenced image
+					mutate.IndexAddendum{
+						Add:        img,
+						Descriptor: imgDesc,
+					},
+					// and the new runx image
+					mutate.IndexAddendum{
+						Add:        runxImage,
+						Descriptor: *runxDesc,
+					})
 		} else if desc.MediaType.IsIndex() {
 			index, err = remote.Index(ref, remoteOpts...)
 			if err != nil {
