@@ -1,0 +1,41 @@
+vars:
+  go_version: 1.24.4
+  ctr: >-
+    $(container |
+    from golang:$go_version-alpine |
+    with-exec go install golang.org/x/tools/cmd/goimports@latest |
+    with-exec go install mvdan.cc/gofumpt@latest |
+    with-workdir /go/src |
+    with-mounted-file /go/src/go.mod go.mod |
+    with-mounted-file /go/src/go.sum go.sum |
+    with-mounted-cache /root/.cache $(cache-volume go-cache) |
+    with-mounted-cache /go/pkg/mod $(cache-volume go-pkg-mod) |
+    with-exec go mod download |
+    with-mounted-directory /go/src .)
+
+tasks:
+  terminal: >
+    $ctr | terminal
+
+  go:test: >
+    $ctr |
+    with-exec -- go test -coverpkg=./... -coverprofile=.coverage -shuffle=on ./... |
+    stdout
+
+  go:cover: >
+    $ctr |
+    with-exec -- go tool cover -html=.coverage |
+    stdout
+
+  go:tidy: >
+    $ctr |
+    with-exec -- go mod tidy -v |
+    stdout
+
+  go:fmt: >
+    $ctr |
+    with-exec -- find . -type f -name "*.go" -exec .github/remove_empty_imports.sh "{}" \; |
+    with-exec -- goimports -w -local github.com/docker,github.com/eunomie . |
+    with-exec -- gofumpt -w . |
+    directory /go/src |
+    export .
